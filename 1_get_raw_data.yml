@@ -1,0 +1,21 @@
+target_default: 1_get_raw_data
+
+packages:
+  - dplyr
+  - readxl
+  
+sources:
+  - 1_get_raw_data/src/get_raw_data.R
+  
+targets:
+  1_get_raw_data:
+    depends:
+      - raw_sample
+      - raw_site
+  
+  raw_sample:
+    command: get_sample(file = '//gs.doi.net/MiddletonWI-W/Projects/QW Monitoring Team/MMSD/Phase V/QWTrends/Data/2_OriginalData/20170221_QWDataFromBeth/USGS_WQ_DATA_02-16.xlsx')
+    
+  raw_site:
+    command: get_sites(file = '//gs.doi.net/MiddletonWI-W/Projects/QW Monitoring Team/MMSD/Phase V/QWTrends/Data/1_DataInventories/SampleGanttCharts_wRanks.xlsx')
+  
