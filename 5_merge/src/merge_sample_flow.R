@@ -4,6 +4,9 @@ library(dplyr)
 merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.in){
 
   min.samples <- 50
+  
+  dir.create(save.eLists.in, showWarnings = FALSE, recursive = TRUE)
+  
   params <- data.frame(name = c("BOD20 (mg/L)","BOD5 (mg/L)","FC (MPN/100mL)","NH3 (mg/L)","TP (mg/L)","Total Suspended Solids (mg/L)"),
                        paramShortName = c("BOD20","BOD5","FC","NH3","TP","Total Suspended Solids"),
                        param.units = c("mg/L","mg/L","MPN/100mL","mg/L","mg/L","mg/L"),
