@@ -24,15 +24,6 @@ devtools::install_github("richfitz/remake")
 remake::install_missing_packages()
 ```
 
-3. If there are credentials involved, our team will likely be using the `dssecrets` package. This is a private package, so to install from GitHub, it will be useful to specify a [GitHub Personal Access Token](https://github.com/settings/tokens) (`GITHUB_PAT`) in your environment variables. It may also be necessary to tell `secret` exactly where to look for your private key (`USER_KEY`) that matches your public key in `dssecrets`. You can specify both variables in the same place: the same .Rprofile file mentioned twice above.
-    ```
-    ### RStudio-R_USER/.Rprofile (adding still more lines) ####
-    # Set additional environment variables
-    Sys.setenv(
-      GITHUB_PAT='yourgithubpat',
-      USER_KEY="C:/Users/yourusername/.ssh/id_rsa_orsimilar")
-    ```
-
 
 ## Building the project
 
@@ -57,42 +48,35 @@ make("5_merge/doc/progress.csv")
 Want to do things the old fashioned way? you can create the script that `remake` would execute if all targets were out of date:
 ```r
 remake::make_script()
- [1] "library(\"remake\")"
- [2] "library(\"EGRET\")"
- [3] "library(\"yaml\")"
- [4] "library(\"dplyr\")"
- [5] "library(\"dataRetrieval\")"
- [6] "library(\"readxl\")"
- [7] "library(\"tidyr\")"
- [8] "library(\"stringr\")"
- [9] "library(\"data.table\")"
-[10] "library(\"aws.s3\")"
-[11] "library(\"aws.signature\")"
-[12] "source(\"6_model/src/run_models.R\")"
-[13] "source(\"6_model/src/plot_models.R\")"
-[14] "source(\"5_merge/src/merge_sample_flow.R\")"
-[15] "source(\"4_discharge/src/get_flow.R\")"
-[16] "source(\"3_filter/src/summarize_sites.R\")"
-[17] "source(\"3_filter/src/summarize_samples.R\")"
-[18] "source(\"3_filter/src/summarize_flow.R\")"
-[19] "source(\"2_clean_sample/src/clean_sample_data.R\")"
-[20] "source(\"lib/s3.R\")"
-[21] "dir.create(\"6_model/doc\", FALSE, TRUE)"
-[22] "dir.create(\"5_merge/doc\", FALSE, TRUE)"
-[23] "dir.create(\"1_get_raw_data/out\", FALSE, TRUE)"
-[24] "get_s3(\"1_get_raw_data/out/USGS_WQ_DATA_02-16.xlsx\", \"lib/s3_config.yaml\")"
-[25] "sample_data <- clean_sample_data(\"1_get_raw_data/out/USGS_WQ_DATA_02-16.xlsx\")"
-[26] "get_s3(\"1_get_raw_data/out/SampleGanttCharts_wRanks.xlsx\", \"lib/s3_config.yaml\")"
-[27] "summary_sites <- summarize_sites(sample_data, \"1_get_raw_data/out/SampleGanttCharts_wRanks.xlsx\", \"3_filter/cfg/filter_config.yaml\")"
-[28] "summary_flow <- summarize_flow(summary_sites)"
-[29] "flow <- get_flow(summary_flow)"
-[30] "merged_flow <- merge_sample_flow(\"5_merge/cfg/merge_config.yaml\", sample_data, summary_sites, flow)"
-[31] "as.progress_csv(merged_flow, \"5_merge/doc/progress.csv\")"
-[32] "eLists <- as.eLists(merged_flow)"
-[33] "run_models(\"5_merge/doc/progress.csv\", eLists, \"6_model/doc/progress.csv\", \"6_model/out\")"
-[34] "pdf(\"6_model/doc/model_check.pdf\")"
-[35] "plot_models(\"6_model/doc/progress.csv\", \"6_model/doc/model_check.pdf\")"
-[36] "dev.off()"
+library("remake")
+library("EGRET")
+library("dplyr")
+library("dataRetrieval")
+library("readxl")
+library("tidyr")
+library("stringr")
+library("data.table")
+library("yaml")
+source("6_model/src/run_models.R")
+source("6_model/src/plot_models.R")
+source("5_merge/src/merge_sample_flow.R")
+source("4_discharge/src/get_flow.R")
+source("3_filter/src/summarize_sites.R")
+source("3_filter/src/summarize_flow.R")
+source("2_clean_sample/src/clean_sample_data.R")
+source("1_get_raw_data/src/get_raw_data.R")
+dir.create("6_model/doc", FALSE, TRUE)
+dir.create("5_merge/doc", FALSE, TRUE)
+raw_sample <- get_sample(file = "//gs.doi.net/MiddletonWI-W/Projects/QW Monitoring Team/MMSD/Phase V/QWTrends/Data/2_OriginalData/20170221_QWDataFromBeth/USGS_WQ_DATA_02-16.xlsx")
+sample_data <- clean_sample_data(raw_sample)
+raw_site <- get_sites(file = "//gs.doi.net/MiddletonWI-W/Projects/QW Monitoring Team/MMSD/Phase V/QWTrends/Data/1_DataInventories/SampleGanttCharts_wRanks.xlsx")
+summary_sites <- summarize_sites(sample_data, raw_site, min.samples = 400)
+summary_flow <- summarize_flow(summary_sites)
+flow <- get_flow(summary_flow)
+merged_flow <- merge_sample_flow(sample_data, summary_sites, flow, save.eLists.in = "5_merge/out")
+model_list <- run_models(merged_flow, "5_merge/out", "6_model/out")
+plot_models(model_list, "6_model/doc/model_check.pdf")
+
 
 # or if you want to capture this in a script that you can source:
 cat(remake::make_script(), file = 'MMSD_remake_script.R', sep = '\n')
@@ -102,22 +86,6 @@ cat(remake::make_script(), file = 'MMSD_remake_script.R', sep = '\n')
 like `make`, you can start a "clean" build:
 ```r
 remake::make("clean")
-<  MAKE > clean
-[ CLEAN ] tidy
-[  READ ]                                                  |  # loading packages
-(   DEL ) merged_flow                                      |  rm("merged_flow")
-(   DEL ) eLists                                           |  rm("eLists")
-(   DEL ) flow                                             |  rm("flow")
-(   DEL ) summary_sites                                    |  rm("summary_sites")
-(   DEL ) summary_flow                                     |  rm("summary_flow")
-(   DEL ) sample_data                                      |  rm("sample_data")
-[ CLEAN ] clean
-(   DEL ) 6_model/doc/progress.csv                         |  file.remove("6_model/doc/progress.csv")
-(   DEL ) 6_model/doc/model_check.pdf                      |  file.remove("6_model/doc/model_check.pdf")
-(   DEL ) 5_merge/doc/progress.csv                         |  file.remove("5_merge/doc/progress.csv")
-(   DEL ) 5_merge/doc/data_checks.pdf                      |  file.remove("5_merge/doc/data_checks.pdf")
-(   DEL ) 1_get_raw_data/out/USGS_WQ_DATA_02-16.xlsx       |  file.remove("1_get_raw_data/out/USGS_WQ_DATA_02-16.xlsx")
-(   DEL ) 1_get_raw_data/out/SampleGanttCharts_wRanks.xlsx |  file.remove("1_get_raw_data/out/SampleGanttCharts_wRanks.xlsx")
 ```
 Note that the above command deletes files and also gets rid of R objects. 
 Alternatively, you can delete individual targets:
