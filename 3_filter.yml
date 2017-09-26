@@ -1,0 +1,22 @@
+target_default: 3_filter
+
+include:
+  - 2_clean_sample.yml
+
+packages:
+  - dplyr
+  
+sources:
+  - 3_filter/src/summarize_sites.R
+  - 3_filter/src/summarize_flow.R
+
+targets:
+  3_filter:
+    depends: 
+      - summary_flow
+  
+  summary_sites: 
+    command: summarize_sites(sample_data, raw_site, min.samples = 400) 
+    
+  summary_flow:
+    command: summarize_flow(summary_sites)

@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+cached_data
+*/doc/*
+!*/doc/README.md
+*/log/*
+!*/log/README.md
+*/out/*
+!*/out/README.md
+.remake

@@ -1,0 +1,23 @@
+target_default: 5_merge
+
+include:
+  - 4_discharge.yml
+
+packages:
+  - EGRET
+  - dplyr
+  
+sources:
+  - 5_merge/src/merge_sample_flow.R
+
+targets:
+  5_merge:
+    depends: 
+      - merged_flow
+      - 5_merge/doc/data_checks.pdf
+  
+  merged_flow: 
+    command: merge_sample_flow(sample_data, summary_sites, flow, save.eLists.in='5_merge/out')
+  
+  5_merge/doc/data_checks.pdf:
+    command: plot_eLists(merged_flow, '5_merge/out', target_name)
