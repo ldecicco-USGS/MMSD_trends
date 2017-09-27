@@ -16,7 +16,7 @@ targets:
       - summary_flow
   
   summary_sites: 
-    command: summarize_sites(sample_data, raw_site, min.samples = 400) 
+    command: summarize_sites(sample_data, raw_site) 
     
   summary_flow:
     command: summarize_flow(summary_sites)
