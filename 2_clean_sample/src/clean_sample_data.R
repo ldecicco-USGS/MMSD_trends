@@ -25,21 +25,25 @@ clean_sample_data <- function(raw_sample){
     distinct()
 
   data.long$value.new <- as.numeric(data.long$value.new)
-    
+  
+  # get rid of "S" "B" "M" from site codes
+  # take mean of duplicated measurements from site/date/param combos
+  
+  data.long.mean <- data.long %>%
+    mutate(SITE = gsub(pattern = "([A-Za-z]{2}-[0-9]{2})([A-Za-z]{1})",replacement = "\\1", data.long$SITE)) %>%
+    filter(rmk != 'M') %>%
+    group_by(SITE, DATE, param) %>%
+    summarize(value.mean = mean(value.new), rmk.mean = paste0(unique(rmk), collapse = '')) %>%
+    filter(rmk.mean != '<>')
 
-  # Right now, we have data with >1 sample per day, 
-  # but no more info than that. 
-  # For now...deleting all but the first unique site/date combo:
   
-  site_date <- paste(data.long$SITE, data.long$DATE, data.long$param)
-  dup.rows <- which(duplicated(site_date))
-  
-  data.wide <- dcast(setDT(data.long[-dup.rows,]),
+  data.wide <- dcast(setDT(data.long.mean),
                      SITE + DATE ~ param,
-                     value.var = c("value.new", "rmk"))
+                     value.var = c("value.mean", "rmk.mean"))
   
   
   
-  names(data.wide) <- gsub("value.new_","",names(data.wide))
+  names(data.wide) <- gsub("value.mean_","",names(data.wide))
+  names(data.wide) <- gsub("rmk.mean_", "rmk_", names(data.wide))
   return(data.wide)
 }
