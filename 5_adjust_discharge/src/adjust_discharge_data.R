@@ -12,7 +12,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
     if (site.dat$rules[i] == "As is") {
       flow <- subset(flow.dat, site_no == sites[i])
       flow$sample_site <- site.dat$SITE[i]
-      flow.revised[i] <- flow
+      flow.revised[[i]] <- flow
       next
     }
     
@@ -20,7 +20,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       flow <- subset(flow.dat, site_no == sites[i])
       flow$Flow <- site.dat$DA_scale*flow$Flow
       flow$sample_site <- site.dat$SITE[i]
-      flow.revised[i] <- flow
+      flow.revised[[i]] <- flow
     }
     
     if (site.dat$rules[i] == 'interpolate') {
@@ -30,8 +30,15 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
         arrange(Date) %>%
         rowwise %>%
         mutate(Flow = median(c(Flow.x, Flow.y))) %>%
-        filter(Date >= site.dat$begin[i])
+        filter(Date >= site.dat$begin[i]) %>%
+        mutate(Flow_cd = paste0(Flow_cd.x, Flow_cd.y))
       
+      flow$Flow_cd[grep("A e", flow$Flow_cd)] <- "A e"
+      flow$Flow_cd[grep("AA", flow$Flow_cd)] <- "A"
+      
+      # some interpolated sites don't completely overlap
+      # if they don't, create a lm between the adjust flow and the 
+      # flow with complete data, fill in missing values
       
       if (anyNA(flow$Flow)) {
         # find which var has data
@@ -48,12 +55,14 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
         }
       }
       
-      flow <- flow %>%
-        select(Date, Flow) %>%
+      flow.interpolated <- flow %>%
+        select(Date, Flow, Flow_cd) %>%
         mutate(agency_cd = "USGS") %>%
         mutate(site_no = site.dat$Q_1[i]) %>%
         mutate(sample_site = site.dat$SITE[i]) %>%
         select(agency_cd, site_no, Date, Flow, Flow_cd, sample_site)
+      
+      flow.revised[[i]] <- flow.interpolated
     }
   
         
