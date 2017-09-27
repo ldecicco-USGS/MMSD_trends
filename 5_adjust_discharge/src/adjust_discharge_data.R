@@ -7,8 +7,31 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
   
   flow.revised <- list()
   sites <- site.dat$Q_1
+  
+  # adjust KK site up front because it is used in multiple places for
+  # either scaling or other adjustments
+  # gage only goes to 1982, but WQ starts in 1979. 
+  # start by creating relationship between honey ~ kk to 
+  # backfill record
+  
+  kk <- subset(flow.dat, site_no == '04087159')
+  honey <- subset(flow.dat, site_no == '04087119')
+  kk.hon <- left_join(honey, kk, by = c('agency_cd', 'Date'))
+  kk.hon$Flow <- kk.hon$Flow.y
+  kk.hon$Flow_cd <- kk.hon$Flow_cd.y
+  kk.hon$Flow_cd[is.na(kk.hon$Flow_cd)] <- kk.hon$Flow_cd.x[is.na(kk.hon$Flow_cd)]
+  
+  mod <- lm(Flow.y ~ Flow.x, data = kk.hon)
+  missing.vals <- subset(kk.hon, is.na(kk.hon$Flow))
+  missing.vals$Flow <- predict(mod, missing.vals)
+  missing.vals$site_no <- '04087159'
+  missing.vals <- missing.vals[,c('agency_cd', 'site_no', 'Date', 'Flow', 'Flow_cd')]
+  
+  flow.dat <- rbind(flow.dat, missing.vals)
+
   for (i in 1:length(sites)) {
     
+    # for "As is" sites
     if (site.dat$rules[i] == "As is") {
       flow <- subset(flow.dat, site_no == sites[i])
       flow$sample_site <- site.dat$SITE[i]
@@ -16,6 +39,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       next
     }
     
+    # for scale sites, simply multiple by drainage area scaling ratio
     if (site.dat$rules[i] == "scale") {
       flow <- subset(flow.dat, site_no == sites[i])
       flow$Flow <- site.dat$DA_scale*flow$Flow
@@ -23,6 +47,8 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       flow.revised[[i]] <- flow
     }
     
+    # for interpolation, take the median (or mean) value
+    # between the two sites
     if (site.dat$rules[i] == 'interpolate') {
       flow1 <- subset(flow.dat, site_no == site.dat$Q_1[i])
       flow2 <- subset(flow.dat, site_no == site.dat$Q_2[i])
@@ -37,7 +63,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       flow$Flow_cd[grep("AA", flow$Flow_cd)] <- "A"
       
       # some interpolated sites don't completely overlap
-      # if they don't, create a lm between the adjust flow and the 
+      # if they don't, create a lm between the median flow and the 
       # flow with complete data, fill in missing values
       
       if (anyNA(flow$Flow)) {
@@ -55,6 +81,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
         }
       }
       
+      # clean up merged data
       flow.interpolated <- flow %>%
         select(Date, Flow, Flow_cd) %>%
         mutate(agency_cd = "USGS") %>%
@@ -63,9 +90,85 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
         select(agency_cd, site_no, Date, Flow, Flow_cd, sample_site)
       
       flow.revised[[i]] <- flow.interpolated
+      next
     }
-  
+    
+    # for regression sites, find which site has missing data, 
+    # create a regression of flow.missing ~ flow.complete
+    # predict missing instances of flow.missing
+    if (site.dat$rules[i] == 'regression') {
+      flow1 <- subset(flow.dat, site_no == site.dat$Q_1[i])
+      flow2 <- subset(flow.dat, site_no == site.dat$Q_2[i])
+      flow <- full_join(flow1, flow2, by = 'Date') %>%
+        arrange(Date) %>%
+        filter(Date >= site.dat$begin[i])
+      
+      if (anyNA(flow$Flow.x)) {
+        # keep observed flow.x values
+        flow$Flow <- flow$Flow.x
+        flow$Flow_cd <- flow$Flow_cd.x
         
+        temp.flow <- subset(flow, is.na(flow$Flow))
+        
+        # create relationship between flow x and y
+        mod <- lm(log10(Flow.x) ~ log10(Flow.y), data = flow)
+        flow$Flow[is.na(flow$Flow)] <- as.numeric(predict(mod, temp.flow))
+        flow$Flow_cd[is.na(flow$Flow_cd)] <- flow$Flow_cd.y[is.na(flow$Flow_cd)]
+      } else {
+        
+        flow$Flow <- flow$Flow.y
+        flow$Flow_cd <- flow$Flow_cd.y
+        
+        temp.flow <- subset(flow, is.na(flow$Flow))
+        
+        # create relationship between flow x and y
+        mod <- lm(Flow.y ~ Flow.x, data = flow)
+        flow$Flow[is.na(flow$Flow)] <- as.numeric(predict(mod, temp.flow))
+        flow$Flow_cd[is.na(flow$Flow_cd)] <- flow$Flow_cd.x[is.na(flow$Flow_cd)]
+        
+      }
+      
+      flow.regressed <- flow %>%
+        select(Date, Flow, Flow_cd) %>%
+        mutate(agency_cd = "USGS") %>%
+        mutate(site_no = site.dat$Q_1[i]) %>%
+        mutate(sample_site = site.dat$SITE[i]) %>%
+        select(agency_cd, site_no, Date, Flow, Flow_cd, sample_site)
+      
+      flow.revised[[i]] <- flow.regressed
     }
-  
+    
+    if (site.dat$SITE[i] == 'OH-01') {
+      flow1 <- subset(flow.dat, site_no == site.dat$Q_1[i])
+      flow2 <- subset(flow.dat, site_no == site.dat$Q_2[i])
+      flow3 <- subset(flow.dat, site_no == site.dat$Q_3[i])
+    
+      
+      flows <- left_join(flow1, flow2, by = c('agency_cd', 'Date'))
+      flows <- left_join(flows, flow3, by = c('agency_cd', 'Date'))
+      complete.flows <- subset(flows, !is.na(flows$Flow))
+      complete.flows$sum <-  rowSums(complete.flows[,c('Flow.x', 'Flow.y', 'Flow')], na.rm = TRUE)
+      complete.flows <- left_join(complete.flows, flow4, by = c('agency_cd', 'Date'))
+      plot(complete.flows$Flow.y.y ~ complete.flows$sum)
+      
+      flows$sum12 <- rowSums(flows[,c('Flow.x', 'Flow.y')], na.rm = TRUE)
+      plot(flows$sum12 ~ flows$Flow)
+      flows$sum <- rowSums(flows[,c('Flow.x', 'Flow.y', 'Flow')], na.rm = TRUE)
+      
+      flow4 <- subset(flow.dat, site_no == site.dat$Q_4[i])
+      
+      flowsup <- full_join(flow1, flow2, by = 'Date') %>%
+        full_join(flow3, by = 'Date') %>%
+        full_join(flow4, by = 'Date') %>%
+        mutate(flow_up = rowSums('Flow.x', 'Flow.y', 'Flow.x.x', na.rm = TRUE))
+        
+    
+      
+  }
+    
+    
+    
+    
+    
+  }
 }
