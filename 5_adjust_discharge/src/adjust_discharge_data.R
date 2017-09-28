@@ -63,6 +63,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       flow$Flow <- site.dat$DA_scale[i]*flow$Flow
       flow$sample_site <- site.dat$SITE[i]
       flow.revised[[i]] <- flow
+      next
     }
     
     # for interpolation, take the median (or mean) value
@@ -173,6 +174,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
         select(agency_cd, site_no, Date, Flow, Flow_cd, sample_site)
       
       flow.revised[[i]] <- flow.regressed
+      next
     }
     
     if (site.dat$SITE[i] == 'OH-01') {
