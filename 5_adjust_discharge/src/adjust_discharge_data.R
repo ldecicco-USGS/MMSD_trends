@@ -1,3 +1,5 @@
+library(dplyr)
+
 adjust_discharge_data <- function(flow.dat, site.dat) {
   
   site.dat$rules <- site.dat$adjustment
