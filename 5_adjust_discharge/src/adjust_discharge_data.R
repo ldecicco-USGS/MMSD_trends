@@ -114,8 +114,12 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
     # predict missing instances of flow.missing
     if (site.dat$rules[i] == 'regression') {
       flow1 <- subset(flow.dat, site_no == site.dat$Q_1[i])
-      flow1.mod <- flow1
-      flow1.mod$Date <- flow1$Date + 1
+      
+      if (site.dat$SITE == 'RR-04'){
+        # this gives the upstream site at Root River
+        # a + 1 day offset to better match downstream site
+        flow1$Date <- flow1$Date +1
+      }
       
       flow2 <- subset(flow.dat, site_no == site.dat$Q_2[i])
       flow <- full_join(flow1, flow2, by = 'Date') %>%
@@ -154,8 +158,11 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
         temp.flow <- subset(flow, is.na(flow$Flow))
         
         # create relationship between flow x and y
-        mod <- lm(Flow.y ~ Flow.x, data = flow)
-        flow$Flow[is.na(flow$Flow)] <- as.numeric(predict(mod, temp.flow))
+        mod <- lm(log10(Flow.y) ~ log10(Flow.x), data = flow)
+        mse.mod <- mean(mod$residuals^2)
+        log.adjust <- 10^(mse.mod/2)
+        
+        flow$Flow[is.na(flow$Flow)] <- (10^as.numeric(predict(mod, temp.flow)))*log.adjust
         flow$Flow_cd[is.na(flow$Flow_cd)] <- flow$Flow_cd.x[is.na(flow$Flow_cd)]
         
       }
