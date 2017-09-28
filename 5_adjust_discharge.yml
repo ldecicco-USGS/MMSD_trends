@@ -4,15 +4,15 @@ include:
   - 4_discharge.yml
 
 packages:
-  - 
+  - dplyr
 
 sources:
   - 5_adjust_discharge/src/adjust_discharge_data.R
 
 targets:
   5_adjust_discharge:
-  depends: 
-  - adjusted_discharge
+    depends: 
+      - adjusted_discharge
 
-adjusted_discharge: 
-  command: adjust_discharge_data(flow, summary.samples)
+  adjusted_discharge: 
+    command: adjust_discharge_data(flow, summary.samples)
