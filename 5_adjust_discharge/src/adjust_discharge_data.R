@@ -115,18 +115,14 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
     if (site.dat$rules[i] == 'regression') {
       flow1 <- subset(flow.dat, site_no == site.dat$Q_1[i])
       
-      if (site.dat$SITE == 'RR-04'){
+      if (site.dat$SITE[i] == 'RR-04'){
         # this gives the upstream site at Root River
         # a + 1 day offset to better match downstream site
-        flow1$Date <- flow1$Date +1
+        flow1$Date <- flow1$Date + 1
       }
       
       flow2 <- subset(flow.dat, site_no == site.dat$Q_2[i])
       flow <- full_join(flow1, flow2, by = 'Date') %>%
-        arrange(Date) %>%
-        filter(Date >= site.dat$begin[i])
-      
-      flow.mod <- full_join(flow1.mod, flow2, by = 'Date') %>%
         arrange(Date) %>%
         filter(Date >= site.dat$begin[i])
       
@@ -198,35 +194,34 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
         filter(site_no == site.dat$Q_4[i]) %>%
         rename(FlowQ4 = Flow, FlowQ4_cd = Flow_cd)      
       
-      flows <- left_join(flow1, flow2, by = c('agency_cd', 'Date')) %>%
-        left_join(flow3, by = c('agency_cd', 'Date')) %>%
-        left_join(flow4, by = c('agency_cd', 'Date'))
+      flows <- full_join(flow1, flow2, by = c('agency_cd', 'Date')) %>%
+        full_join(flow3, by = c('agency_cd', 'Date')) %>%
+        full_join(flow4, by = c('agency_cd', 'Date')) %>%
+        mutate(Flow_sums = rowSums(.[c('FlowQ1', 'FlowQ2', 'FlowQ3')])) %>%
+        mutate(Flow = FlowQ4)    
+
+      # model Jones Island vs sum of three sites
+      mod <- lm(FlowQ4 ~ Flow_sums, data = flows)
       
-      flows$Flow_sums = rowSums(flows[,c('FlowQ1', 'FlowQ2', 'FlowQ3')])
+      rows.replace <- which(is.na(flows$Flow)&!is.na(flows$Flow_sums))
+      flows$Flow[rows.replace] <- predict(mod, newdata = flows[rows.replace,])
       
+      flows$Flow_cd = flows$FlowQ4_cd
+      flows$Flow_cd[rows.replace] <- paste0(flows$FlowQ1_cd[rows.replace], flows$FlowQ2_cd[rows.replace], flows$FlowQ3_cd[rows.replace])
       
-      complete.flows <- subset(flows, !is.na(flows$Flow))
-      complete.flows$sum <-  rowSums(complete.flows[,c('Flow.x', 'Flow.y', 'Flow')], na.rm = TRUE)
-      complete.flows <- left_join(complete.flows, flow4, by = c('agency_cd', 'Date'))
-      plot(complete.flows$Flow.y.y ~ complete.flows$sum)
+      flows$Flow_cd[grep("A e", flows$Flow_cd)] <- "A e"
+      flows$Flow_cd[grep("AA", flows$Flow_cd)] <- "A"
       
-      flows$sum12 <- rowSums(flows[,c('Flow.x', 'Flow.y')], na.rm = TRUE)
-      plot(flows$sum12 ~ flows$Flow)
-      flows$sum <- rowSums(flows[,c('Flow.x', 'Flow.y', 'Flow')], na.rm = TRUE)
+      flow.fixed <- flows %>%
+        mutate(site_no = site.dat$Q_4[i]) %>%
+        mutate(sample_site = site.dat$SITE[i]) %>%
+        select(agency_cd, site_no, Date, Flow, Flow_cd, sample_site)
       
-      
-      flowsup <- full_join(flow1, flow2, by = 'Date') %>%
-        full_join(flow3, by = 'Date') %>%
-        full_join(flow4, by = 'Date') %>%
-        mutate(flow_up = rowSums('Flow.x', 'Flow.y', 'Flow.x.x', na.rm = TRUE))
-        
-    
-      
+      flow.revised[[i]] <- flow.fixed
+      next
   }
     
-    
-    
-    
-    
   }
+  
+  flow.revised.out <- rbindlist(flow.revised)
 }
