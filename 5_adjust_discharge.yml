@@ -15,4 +15,4 @@ targets:
       - adjusted_discharge
 
   adjusted_discharge: 
-    command: adjust_discharge_data(flow, summary.samples)
+    command: adjust_discharge_data(flow, summary_sites)
