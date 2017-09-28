@@ -14,20 +14,36 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
   # start by creating relationship between honey ~ kk to 
   # backfill record
   
-  kk <- subset(flow.dat, site_no == '04087159')
-  honey <- subset(flow.dat, site_no == '04087119')
-  kk.hon <- left_join(honey, kk, by = c('agency_cd', 'Date'))
-  kk.hon$Flow <- kk.hon$Flow.y
-  kk.hon$Flow_cd <- kk.hon$Flow_cd.y
-  kk.hon$Flow_cd[is.na(kk.hon$Flow_cd)] <- kk.hon$Flow_cd.x[is.na(kk.hon$Flow_cd)]
+  kk <- flow.dat %>% 
+    filter(site_no == '04087159') %>%
+    rename(Flow_kk = Flow)
   
-  mod <- lm(Flow.y ~ Flow.x, data = kk.hon)
-  missing.vals <- subset(kk.hon, is.na(kk.hon$Flow))
-  missing.vals$Flow <- predict(mod, missing.vals)
-  missing.vals$site_no <- '04087159'
-  missing.vals <- missing.vals[,c('agency_cd', 'site_no', 'Date', 'Flow', 'Flow_cd')]
+  honey <- flow.dat %>%
+    filter(site_no == '04087119') %>%
+    rename(Flow_honey = Flow)
   
-  flow.dat <- rbind(flow.dat, missing.vals)
+  kk.hon <- full_join(honey, kk, by = c('agency_cd', 'Date'))
+  
+  mod_predict_honey <- lm(Flow_honey~Flow_kk, data = kk.hon)
+  mod_predict_kk <- lm(Flow_kk~Flow_honey, data = kk.hon)
+  
+  new.honey <- kk.hon[is.na(kk.hon$Flow_honey), ]
+  new.kk <- kk.hon[is.na(kk.hon$Flow_kk), ]
+
+  new.honey$Flow_honey <- round(predict(mod_predict_honey, newdata = new.honey), 1)
+  new.kk$Flow_kk <- round(predict(mod_predict_kk, newdata = new.kk), 1)
+  
+  new.honey <- new.honey %>%
+    mutate(site_no = '04087119') %>%
+    select(agency_cd, site_no, Date, Flow_honey, Flow_cd.y) %>%
+    rename(Flow = Flow_honey, Flow_cd = Flow_cd.y)
+  
+  new.kk <- new.kk %>%
+    mutate(site_no = '04087159') %>%
+    select(agency_cd, site_no, Date, Flow_kk, Flow_cd.x) %>%
+    rename(Flow = Flow_kk, Flow_cd = Flow_cd.x)
+  
+  flow.dat <- rbind(flow.dat, new.honey, new.kk)
 
   for (i in 1:length(sites)) {
     
@@ -42,7 +58,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
     # for scale sites, simply multiple by drainage area scaling ratio
     if (site.dat$rules[i] == "scale") {
       flow <- subset(flow.dat, site_no == sites[i])
-      flow$Flow <- site.dat$DA_scale*flow$Flow
+      flow$Flow <- site.dat$DA_scale[i]*flow$Flow
       flow$sample_site <- site.dat$SITE[i]
       flow.revised[[i]] <- flow
     }
@@ -139,13 +155,33 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
     }
     
     if (site.dat$SITE[i] == 'OH-01') {
-      flow1 <- subset(flow.dat, site_no == site.dat$Q_1[i])
-      flow2 <- subset(flow.dat, site_no == site.dat$Q_2[i])
-      flow3 <- subset(flow.dat, site_no == site.dat$Q_3[i])
-    
+      flow1 <- flow.dat %>%
+        filter(site_no == site.dat$Q_1[i]) %>%
+        rename(FlowQ1 = Flow, FlowQ1_cd = Flow_cd)
       
-      flows <- left_join(flow1, flow2, by = c('agency_cd', 'Date'))
-      flows <- left_join(flows, flow3, by = c('agency_cd', 'Date'))
+      flow2 <- flow.dat %>%
+        filter(site_no == site.dat$Q_2[i]) %>%
+        rename(FlowQ2 = Flow, FlowQ2_cd = Flow_cd)
+      
+      flow3 <- flow.dat %>%
+        filter(site_no == site.dat$Q_3[i]) %>%
+        rename(FlowQ3 = Flow, FlowQ3_cd = Flow_cd)
+      
+      # note that site 4 (Jones Island) has already been corrected
+      # under low flow conditions (as the sum of upstream sites)
+      # so, really just need to create a relationship between sum and 
+      # JI, and the fill in time gaps
+      flow4 <- flow.dat %>%
+        filter(site_no == site.dat$Q_4[i]) %>%
+        rename(FlowQ4 = Flow, FlowQ4_cd = Flow_cd)      
+      
+      flows <- left_join(flow1, flow2, by = c('agency_cd', 'Date')) %>%
+        left_join(flow3, by = c('agency_cd', 'Date')) %>%
+        left_join(flow4, by = c('agency_cd', 'Date'))
+      
+      flows$Flow_sums = rowSums(flows[,c('FlowQ1', 'FlowQ2', 'FlowQ3')])
+      
+      
       complete.flows <- subset(flows, !is.na(flows$Flow))
       complete.flows$sum <-  rowSums(complete.flows[,c('Flow.x', 'Flow.y', 'Flow')], na.rm = TRUE)
       complete.flows <- left_join(complete.flows, flow4, by = c('agency_cd', 'Date'))
@@ -155,7 +191,6 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       plot(flows$sum12 ~ flows$Flow)
       flows$sum <- rowSums(flows[,c('Flow.x', 'Flow.y', 'Flow')], na.rm = TRUE)
       
-      flow4 <- subset(flow.dat, site_no == site.dat$Q_4[i])
       
       flowsup <- full_join(flow1, flow2, by = 'Date') %>%
         full_join(flow3, by = 'Date') %>%
