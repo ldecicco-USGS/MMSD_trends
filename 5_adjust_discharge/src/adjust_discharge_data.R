@@ -224,4 +224,5 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
   }
   
   flow.revised.out <- rbindlist(flow.revised)
+  return(flow.revised.out)
 }
