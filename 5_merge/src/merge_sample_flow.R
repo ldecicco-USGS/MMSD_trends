@@ -73,16 +73,16 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
       
       Sample <- filter(Sample, Date %in% Daily$Date)
       
-      if(nrow(Sample) < min.samples){
-        master_list <- bind_rows(master_list, 
-                                 data.frame(id = paste(i, params$paramShortName[j], sep="_"),
-                                            complete = FALSE,
-                                            missing_all_sample = TRUE,
-                                            missing_all_flow = FALSE,
-                                            stringsAsFactors = FALSE))
-        
-        next
-      }
+      # if(nrow(Sample) < min.samples){
+      #   master_list <- bind_rows(master_list, 
+      #                            data.frame(id = paste(i, params$paramShortName[j], sep="_"),
+      #                                       complete = FALSE,
+      #                                       missing_all_sample = TRUE,
+      #                                       missing_all_flow = FALSE,
+      #                                       stringsAsFactors = FALSE))
+      #   
+      #   next
+      # }
       
       e.name <- paste0(i,"_",params$paramShortName[j])
       eList <- mergeReport(INFO,Daily,Sample,verbose = FALSE)
@@ -95,7 +95,6 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                           missing_all_sample = FALSE,
                                           missing_all_flow = FALSE,
                                           stringsAsFactors = FALSE))
-      
     }
     
   }
@@ -106,7 +105,6 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
 
 
 plot_eLists <- function(master_list, merged.path, save.pdf.as) {
-  browser()
   graphics.off()
   pdf(file = save.pdf.as)
 
