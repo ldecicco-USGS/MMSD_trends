@@ -28,7 +28,6 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
       filter(sample_site == i) %>%
       select(-sample_site)
     
-    # don't think we need the if statement below, since all sites now have flow
     if(nrow(flow) == 0){
       master_list <- bind_rows(master_list, 
                                data.frame(id = paste(i, params$paramShortName, sep="_"),
@@ -42,6 +41,14 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
     names(flow) <- c('agency', 'site', 'dateTime', 'value', 'code')
     
     Daily <- populateDaily(flow, 35.314667,verbose = FALSE)
+    
+    # some sites have flow data that does not go back all the way to the beginning
+    # of the WQ record. Find NA values in the Daily flow data, and start record
+    # after the last NA value of flow
+    
+    last.na.date <- max(Daily$Date[is.na(Daily$Q)])
+    Daily <- filter(Daily, Date > last.na.date)
+    
     
     for(j in seq_len(nrow(params))){
       
