@@ -47,6 +47,32 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
   
   flow.dat <- rbind(flow.dat, new.honey, new.kk)
 
+  # now fill in some data for KK using a regression with Underwood
+  kk <- flow.dat %>% 
+    filter(site_no == '04087159') %>%
+    rename(Flow_kk = Flow)
+  
+  unwd <- flow.dat %>%
+    filter(site_no == "04087088") %>%
+    rename(Flow_unwd = Flow)
+  
+  kk.unwd <- full_join(unwd, kk, by = c('agency_cd', 'Date')) %>%
+    arrange(Date)
+  
+  mod <- lm(log10(Flow_kk)~log10(Flow_unwd), data = kk.unwd)
+  mse.mod <- mean(mod$residuals^2)
+  log.adjust <- 10^(mse.mod/2)
+  
+  test <- new.kk <- filter(kk.unwd, is.na(Flow_kk))
+  
+  new.kk <- filter(kk.unwd, is.na(Flow_kk)) %>%
+    mutate(Flow = round((10^as.numeric(predict(mod, .)))*log.adjust, 1)) %>%
+    mutate(Flow_cd = Flow_cd.x) %>%
+    mutate(site_no = '04087159') %>%
+    select(agency_cd, site_no, Date, Flow, Flow_cd)
+  
+  flow.dat <- rbind(flow.dat, new.kk)
+  
   for (i in 1:length(sites)) {
     
     # for "As is" sites
