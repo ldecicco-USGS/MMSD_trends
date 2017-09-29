@@ -77,17 +77,21 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
     
     # for "As is" sites
     if (site.dat$rules[i] == "As is") {
-      flow <- subset(flow.dat, site_no == sites[i])
-      flow$sample_site <- site.dat$SITE[i]
+      flow <- flow.dat %>%
+        filter(site_no == sites[i]) %>%
+        filter(Date >= site.dat$begin[i]) %>%
+        mutate(sample_site <- site.dat$SITE[i])
       flow.revised[[i]] <- flow
       next
     }
     
     # for scale sites, simply multiple by drainage area scaling ratio
     if (site.dat$rules[i] == "scale") {
-      flow <- subset(flow.dat, site_no == sites[i])
-      flow$Flow <- site.dat$DA_scale[i]*flow$Flow
-      flow$sample_site <- site.dat$SITE[i]
+      flow <- flow.dat %>%
+        filter(site_no == sites[i]) %>%
+        filter(Date >= site.dat$begin[i]) %>%
+        mutate(Flow = round(site.dat$DA_scale[i]*Flow, 1)) %>%
+        mutate(sample_site = site.dat$SITE[i])
       flow.revised[[i]] <- flow
       next
     }
@@ -227,6 +231,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       flows <- full_join(flow1, flow2, by = c('agency_cd', 'Date')) %>%
         full_join(flow3, by = c('agency_cd', 'Date')) %>%
         full_join(flow4, by = c('agency_cd', 'Date')) %>%
+        filter(Date >= site.dat$begin[i]) %>%
         mutate(Flow_sums = rowSums(.[c('FlowQ1', 'FlowQ2', 'FlowQ3')])) %>%
         mutate(Flow = FlowQ4)    
 
