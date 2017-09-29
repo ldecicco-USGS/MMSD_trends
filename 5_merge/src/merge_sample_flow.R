@@ -3,7 +3,7 @@ library(dplyr)
 
 merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.in){
 
-  min.samples <- 50
+  #min.samples <- 50
   
   dir.create(save.eLists.in, showWarnings = FALSE, recursive = TRUE)
   
@@ -23,8 +23,12 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
   for(i in site.summary$SITE){
     
     sample.data <- filter(all.samples, SITE == i)
-    flow_site <- site.summary$siteID[which(site.summary$SITE == i)]
-    flow <- filter(all.flow, site_no == flow_site)
+    #flow_site <- site.summary$siteID[which(site.summary$SITE == i)]
+    flow <- all.flow %>%
+      filter(sample_site == i) %>%
+      select(-sample_site)
+    
+    # don't think we need the if statement below, since all sites now have flow
     if(nrow(flow) == 0){
       master_list <- bind_rows(master_list, 
                                data.frame(id = paste(i, params$paramShortName, sep="_"),
