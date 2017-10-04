@@ -67,8 +67,8 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
         
         next
       }
-      compressedData <- compressData2(sample.sub, verbose=FALSE)
-      Sample <- populateSampleColumns2(compressedData)
+      compressedData <- compressData(sample.sub, verbose=FALSE)
+      Sample <- populateSampleColumns(compressedData)
       INFO <- data.frame(paramShortName = params$paramShortName[j],
                          param.units = params$param.units[j],
                          shortName = i,
