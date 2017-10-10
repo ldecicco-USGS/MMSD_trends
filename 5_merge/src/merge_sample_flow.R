@@ -8,9 +8,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
   
   dir.create(save.eLists.in, showWarnings = FALSE, recursive = TRUE)
   
-  params <- data.frame(name = c("BOD20 (mg/L)","BOD5 (mg/L)","FC (CFU/100mL)","FC (MPN/100mL)","FC_combined","NH3 (mg/L)","TP (mg/L)","Total Suspended Solids (mg/L)"),
-                       paramShortName = c("BOD20","BOD5","FC_CFU","FC_MPN", "FC_combined", "NH3","TP","Total Suspended Solids"),
-                       param.units = c("mg/L","mg/L","CFU/100mL", "MPN/100mL", "CFU-MPN/100mL","mg/L","mg/L","mg/L"),
+  params <- data.frame(name = c("BOD5 (mg/L)","FC (CFU/100mL)","FC (MPN/100mL)","FC_combined","NH3 (mg/L)","TP (mg/L)","Total Suspended Solids (mg/L)"),
+                       paramShortName = c("BOD5","FC_CFU","FC_MPN", "FC_combined", "NH3","TP","Total Suspended Solids"),
+                       param.units = c("mg/L","CFU/100mL", "MPN/100mL", "CFU-MPN/100mL","mg/L","mg/L","mg/L"),
                        stringsAsFactors = FALSE)
 
   
