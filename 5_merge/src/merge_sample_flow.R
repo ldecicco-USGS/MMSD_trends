@@ -104,6 +104,25 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                          stringsAsFactors = FALSE)
       
       Sample <- filter(Sample, Date %in% Daily$Date)
+      max.diff <- which.max(diff(Sample$Date))
+      prop.gap.before <- which.max(diff(Sample$Date))/nrow(Sample)
+      prop.gap.after <- (nrow(Sample) - which.max(diff(Sample$Date)))/nrow(Sample)
+      
+      # filter samples that are before or after a large gap, and number of samples
+      # before or after that gap make up less than 10% of the data
+      
+      if (max.diff > 365 & (prop.gap.before < .1 | prop.gap.after < .1)) {
+        # distinguish between gaps at end or beginning of record
+        # if gap is at beginning, remove points prior to gap
+        if (prop.gap.before < .1) {
+          Sample <- Sample[(max.diff+1):nrow(Sample), ]
+        # if gap is at end, remove points after gap
+        } else {
+          Sample <- Sample[1:max.diff, ]
+        }
+      }
+      
+      browser()
       
       # if(nrow(Sample) < min.samples){
       #   master_list <- bind_rows(master_list, 
