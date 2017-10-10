@@ -7,7 +7,7 @@ library(data.table)
 clean_sample_data <- function(raw_sample){
 
   data.long <- raw_sample %>%
-    #select(-`FC (CFU/100mL)`) %>%
+    select(-`BOD20 (mg/L)`) %>%
     gather(key = "param", value = "value", -SITE, -DATE) %>%
     mutate(rmk = "")
   
