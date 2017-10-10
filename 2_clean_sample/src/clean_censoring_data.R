@@ -1,6 +1,14 @@
+library(dplyr)
+
+# this function censors pre-2002 data 
+# according to "obvious" censoring levels 
+# these were determined by looking at plots of the low
+# end of the data through time, and looking for hard
+# cutoff lines that were likely censored values
+
 censor.dat <- function(cleaned.dat) {
 
-  dat.censored <- dat %>%
+dat.censored <- dat %>%
   filter(DATE < as.POSIXct("2002-03-25")) %>%
   mutate(year = year(DATE))
 
