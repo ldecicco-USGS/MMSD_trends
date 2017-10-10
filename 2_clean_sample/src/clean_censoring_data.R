@@ -1,5 +1,6 @@
+censor.dat <- function(cleaned.dat) {
 
-dat.censored <- dat %>%
+  dat.censored <- dat %>%
   filter(DATE < as.POSIXct("2002-03-25")) %>%
   mutate(year = year(DATE))
 
@@ -53,5 +54,11 @@ dat.censored$`Total Suspended Solids (mg/L)`[which(dat.censored$DATE >= as.POSIX
 dat.censored$`rmk_Total Suspended Solids (mg/L)`[which(dat.censored$DATE < as.POSIXct("1993-01-01") & dat.censored$`Total Suspended Solids (mg/L)` <= 3)] = "<"
 dat.censored$`Total Suspended Solids (mg/L)`[which(dat.censored$DATE < as.POSIXct("1993-01-01") & dat.censored$`Total Suspended Solids (mg/L)` <= 3)] = 3
 
+# put everything back together
 
-
+dat.final <- dat %>%
+  filter(DATE >= as.POSIXct("2002-03-25")) %>%
+  bind_rows(dat.censored)
+  
+return(dat.final)
+}
