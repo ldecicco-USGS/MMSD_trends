@@ -1,5 +1,6 @@
 library(EGRET)
 library(dplyr)
+library(lubridate)
 
 merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.in){
 
@@ -7,9 +8,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
   
   dir.create(save.eLists.in, showWarnings = FALSE, recursive = TRUE)
   
-  params <- data.frame(name = c("BOD20 (mg/L)","BOD5 (mg/L)","FC (MPN/100mL)","NH3 (mg/L)","TP (mg/L)","Total Suspended Solids (mg/L)"),
-                       paramShortName = c("BOD20","BOD5","FC","NH3","TP","Total Suspended Solids"),
-                       param.units = c("mg/L","mg/L","MPN/100mL","mg/L","mg/L","mg/L"),
+  params <- data.frame(name = c("BOD20 (mg/L)","BOD5 (mg/L)","FC (CFU/100mL)","FC (MPN/100mL)","FC_combined","NH3 (mg/L)","TP (mg/L)","Total Suspended Solids (mg/L)"),
+                       paramShortName = c("BOD20","BOD5","FC_CFU","FC_MPN", "FC_combined", "NH3","TP","Total Suspended Solids"),
+                       param.units = c("mg/L","mg/L","CFU/100mL", "MPN/100mL", "CFU-MPN/100mL","mg/L","mg/L","mg/L"),
                        stringsAsFactors = FALSE)
 
   
@@ -17,7 +18,15 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                             complete = logical(),
                             missing_all_sample = logical(),
                             missing_all_flow = logical(),
-                            stringsAsFactors = FALSE)
+                            stringsAsFactors = FALSE,
+                            n_samples = numeric(),
+                            n_years = numeric(),
+                            n_years_consec = numeric(),
+                            samples_per_year = numeric(),
+                            max_time_gap_days = numeric(),
+                            n_before_gap = numeric(),
+                            n_after_gap = numeric(),
+                            prop_censored = numeric())
   
   
   for(i in site.summary$SITE){
@@ -34,7 +43,15 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                           complete = FALSE,
                                           missing_all_sample = FALSE,
                                           missing_all_flow = TRUE,
-                                          stringsAsFactors = FALSE))
+                                          stringsAsFactors = FALSE,
+                                          n_samples = NA,
+                                          n_years = NA,
+                                          n_years_consec = NA,
+                                          samples_per_year = NA,
+                                          max_time_gap_days = NA,
+                                          n_before_gap = NA,
+                                          n_after_gap = NA,
+                                          prop_censored = NA))
       
       next
     }
@@ -63,7 +80,15 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                             complete = FALSE,
                                             missing_all_sample = TRUE,
                                             missing_all_flow = FALSE,
-                                            stringsAsFactors = FALSE))
+                                            stringsAsFactors = FALSE,
+                                            n_samples = 0,
+                                            n_years = 0,
+                                            n_years_consec = 0,
+                                            samples_per_year = 0,
+                                            max_time_gap_days = NA,
+                                            n_before_gap = NA,
+                                            n_after_gap = NA,
+                                            prop_censored = NA))
         
         next
       }
@@ -101,7 +126,15 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                           complete = TRUE,
                                           missing_all_sample = FALSE,
                                           missing_all_flow = FALSE,
-                                          stringsAsFactors = FALSE))
+                                          stringsAsFactors = FALSE,
+                                          n_samples = nrow(eList$Sample),
+                                          n_years = length(unique(year(eList$Sample$Date))), 
+                                          n_years_consec = length(which(diff(unique(year(eList$Sample$Date)))==1))+1,
+                                          samples_per_year = round(nrow(eList$Sample)/length(unique(year(eList$Sample$Date))), 1),
+                                          max_time_gap_days = max(diff(eList$Sample$Date)),
+                                          n_before_gap = which.max(diff(eList$Sample$Date)),
+                                          n_after_gap = nrow(eList$Sample) - which.max(diff(eList$Sample$Date)),
+                                          prop_censored = 1-round(mean(eList$Sample$Uncen), 2)))
     }
     
   }
