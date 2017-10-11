@@ -26,6 +26,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                             max_time_gap_days = numeric(),
                             n_before_gap = numeric(),
                             n_after_gap = numeric(),
+                            n_flow_gaps = numeric(),
                             prop_censored = numeric())
   
   
@@ -51,6 +52,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                           max_time_gap_days = NA,
                                           n_before_gap = NA,
                                           n_after_gap = NA,
+                                          n_flow_gaps = NA,
                                           prop_censored = NA))
       
       next
@@ -59,13 +61,11 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
     
     Daily <- populateDaily(flow, 35.314667,verbose = FALSE)
     
+    Daily <- arrange(Daily, Date)
     # some sites have flow data that does not go back all the way to the beginning
     # of the WQ record. Find NA values in the Daily flow data, and start record
     # after the last NA value of flow
-    
-    last.na.date <- max(Daily$Date[is.na(Daily$Q)])
-    Daily <- filter(Daily, Date > last.na.date)
-    
+  
     
     for(j in seq_len(nrow(params))){
       
@@ -88,6 +88,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                             max_time_gap_days = NA,
                                             n_before_gap = NA,
                                             n_after_gap = NA,
+                                            n_flow_gaps = NA,
                                             prop_censored = NA))
         
         next
@@ -103,8 +104,12 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                          paLong = 12,
                          stringsAsFactors = FALSE)
       
-      Sample <- filter(Sample, Date %in% Daily$Date)
+      Sample <- filter(Sample, Date %in% Daily$Date) %>%
+        arrange(Date)
+      
       max.diff <- which.max(diff(Sample$Date))
+      n.gap.before <- which.max(diff(Sample$Date))
+      n.gap.after <- nrow(Sample) - which.max(diff(Sample$Date))
       prop.gap.before <- which.max(diff(Sample$Date))/nrow(Sample)
       prop.gap.after <- (nrow(Sample) - which.max(diff(Sample$Date)))/nrow(Sample)
       
@@ -122,21 +127,26 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
         }
       }
       
-      browser()
+      # modify Daily to match the start and end dates of Sample
+      Daily_mod <- filter(Daily, Date >= min(Sample$Date) & Date <= max(Sample$Date))
       
-      # if(nrow(Sample) < min.samples){
-      #   master_list <- bind_rows(master_list, 
-      #                            data.frame(id = paste(i, params$paramShortName[j], sep="_"),
-      #                                       complete = FALSE,
-      #                                       missing_all_sample = TRUE,
-      #                                       missing_all_flow = FALSE,
-      #                                       stringsAsFactors = FALSE))
-      #   
-      #   next
-      # }
+      # find gaps in the flow data
+      n.flow.gaps <- length(which(diff(Daily_mod$Date) >1))
+      
+      # if there are gaps in the flow data, remove data before gaps
+      # then modify the sample record to match the flow record
+      
+      if (n.flow.gaps > 1) {
+        row.drop <- which(diff(Daily$Date) >1)
+        Daily <- Daily[(row.drop+1):nrow(Daily), ]
+        Sample <- filter(Sample, Date >= min(Daily$Date) & Date <= max(Daily$Date))
+      }
+      
+      # now modify and check daily flow data to make sure flow data are continous to 
+      # sample data 
       
       e.name <- paste0(i,"_",params$paramShortName[j])
-      eList <- mergeReport(INFO,Daily,Sample,verbose = FALSE)
+      eList <- mergeReport(INFO,Daily_mod,Sample,verbose = FALSE)
       
       saveRDS(eList, file = file.path(save.eLists.in,paste0(e.name,".rds")))
       
@@ -150,9 +160,10 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                           n_years = length(unique(year(eList$Sample$Date))), 
                                           n_years_consec = length(which(diff(unique(year(eList$Sample$Date)))==1))+1,
                                           samples_per_year = round(nrow(eList$Sample)/length(unique(year(eList$Sample$Date))), 1),
-                                          max_time_gap_days = max(diff(eList$Sample$Date)),
-                                          n_before_gap = which.max(diff(eList$Sample$Date)),
-                                          n_after_gap = nrow(eList$Sample) - which.max(diff(eList$Sample$Date)),
+                                          max_time_gap_days = max.diff,
+                                          n_before_gap = n.gap.before,
+                                          n_after_gap = n.gap.after,
+                                          n_flow_gaps = n.flow.gaps, 
                                           prop_censored = 1-round(mean(eList$Sample$Uncen), 2)))
     }
     
