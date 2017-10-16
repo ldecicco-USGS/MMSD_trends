@@ -47,21 +47,51 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
   
   flow.dat <- rbind(flow.dat, new.honey, new.kk)
 
+  # now fill in some data for KK using a regression with Underwood
+  kk <- flow.dat %>% 
+    filter(site_no == '04087159') %>%
+    rename(Flow_kk = Flow)
+  
+  unwd <- flow.dat %>%
+    filter(site_no == "04087088") %>%
+    rename(Flow_unwd = Flow)
+  
+  kk.unwd <- full_join(unwd, kk, by = c('agency_cd', 'Date')) %>%
+    arrange(Date)
+  
+  mod <- lm(log10(Flow_kk)~log10(Flow_unwd), data = kk.unwd)
+  mse.mod <- mean(mod$residuals^2)
+  log.adjust <- 10^(mse.mod/2)
+  
+  test <- new.kk <- filter(kk.unwd, is.na(Flow_kk))
+  
+  new.kk <- filter(kk.unwd, is.na(Flow_kk)) %>%
+    mutate(Flow = round((10^as.numeric(predict(mod, .)))*log.adjust, 1)) %>%
+    mutate(Flow_cd = Flow_cd.x) %>%
+    mutate(site_no = '04087159') %>%
+    select(agency_cd, site_no, Date, Flow, Flow_cd)
+  
+  flow.dat <- rbind(flow.dat, new.kk)
+  
   for (i in 1:length(sites)) {
     
     # for "As is" sites
     if (site.dat$rules[i] == "As is") {
-      flow <- subset(flow.dat, site_no == sites[i])
-      flow$sample_site <- site.dat$SITE[i]
+      flow <- flow.dat %>%
+        filter(site_no == sites[i]) %>%
+        filter(Date >= site.dat$begin[i]) %>%
+        mutate(sample_site <- site.dat$SITE[i])
       flow.revised[[i]] <- flow
       next
     }
     
     # for scale sites, simply multiple by drainage area scaling ratio
     if (site.dat$rules[i] == "scale") {
-      flow <- subset(flow.dat, site_no == sites[i])
-      flow$Flow <- site.dat$DA_scale[i]*flow$Flow
-      flow$sample_site <- site.dat$SITE[i]
+      flow <- flow.dat %>%
+        filter(site_no == sites[i]) %>%
+        filter(Date >= site.dat$begin[i]) %>%
+        mutate(Flow = round(site.dat$DA_scale[i]*Flow, 1)) %>%
+        mutate(sample_site = site.dat$SITE[i])
       flow.revised[[i]] <- flow
       next
     }
@@ -201,6 +231,7 @@ adjust_discharge_data <- function(flow.dat, site.dat) {
       flows <- full_join(flow1, flow2, by = c('agency_cd', 'Date')) %>%
         full_join(flow3, by = c('agency_cd', 'Date')) %>%
         full_join(flow4, by = c('agency_cd', 'Date')) %>%
+        filter(Date >= site.dat$begin[i]) %>%
         mutate(Flow_sums = rowSums(.[c('FlowQ1', 'FlowQ2', 'FlowQ3')])) %>%
         mutate(Flow = FlowQ4)    
 

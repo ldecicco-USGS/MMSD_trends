@@ -7,7 +7,7 @@ library(data.table)
 clean_sample_data <- function(raw_sample){
 
   data.long <- raw_sample %>%
-    select(-`FC (CFU/100mL)`) %>%
+    select(-`BOD20 (mg/L)`) %>%
     gather(key = "param", value = "value", -SITE, -DATE) %>%
     mutate(rmk = "")
   
@@ -45,5 +45,13 @@ clean_sample_data <- function(raw_sample){
   
   names(data.wide) <- gsub("value.mean_","",names(data.wide))
   names(data.wide) <- gsub("rmk.mean_", "rmk_", names(data.wide))
+
+    # combine FC vars into a single var. Will analyze all three. 
+  data.wide$FC_combined <- data.wide$`FC (MPN/100mL)`
+  data.wide$FC_combined[is.na(data.wide$FC_combined)] <- data.wide$`FC (CFU/100mL)`[is.na(data.wide$FC_combined)]
+
+  data.wide$rmk_FC_combined <- data.wide$`rmk_FC (MPN/100mL)`
+  data.wide$rmk_FC_combined[is.na(data.wide$rmk_FC_combined)] <- data.wide$`rmk_FC (CFU/100mL)`[is.na(data.wide$rmk_FC_combined)]
+  
   return(data.wide)
 }

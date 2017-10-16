@@ -13,11 +13,17 @@ packages:
   
 sources:
   - 2_clean_sample/src/clean_sample_data.R
+  - 2_clean_sample/src/clean_censored_data.R
 
 targets:
   2_clean_sample:
     depends: 
+      - clean_sample_data
       - sample_data
   
-  sample_data: 
+  clean_sample_data: 
     command: clean_sample_data(raw_sample)
+    
+  sample_data:
+    command: censored_data(clean_sample_data)
+    

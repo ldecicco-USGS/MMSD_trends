@@ -18,7 +18,6 @@ flow.info <- select(site.info, Site, siteID = STAID,
                       Q_4 = `USGS Quaternary Flow Site to use`,
                       DA_scale = `DA scale factor`,
                       adjustment = `Flow adjustments to make`)
-  
   summary.sites <- summary.samples %>%
     left_join(flow.info, by=c("SITE"="Site"))%>%
     filter(Q_1 != "--") 

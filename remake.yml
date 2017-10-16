@@ -4,8 +4,8 @@ packages:
   - remake
 
 include:
-  - 6_model.yml
+  - 7_model.yml
 
 targets:
   all:
-    depends: 6_model/doc/model_check.pdf
+    depends: 7_model/doc/model_check.pdf
