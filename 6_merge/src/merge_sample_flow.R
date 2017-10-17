@@ -175,6 +175,17 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
 
 }
 
+list_eLists <- function(master_list, merged.path) {
+  all.eLists <- list()
+  all.ids <- c()
+  for (id in master_list$id[master_list$complete & master_list$n_years_consec > 9]) {
+    path.eList <- file.path(merged.path, paste0(id, ".rds"))
+    all.eLists[[id]] <- readRDS(path.eList)
+    all.ids[id] <- id
+  }
+  saveRDS(all.eLists, file = file.path(merged.path, 'all_eLists.rds'))
+  saveRDS(all.ids, file = file.path(merged.path, 'all_ids.rds'))
+}
 
 plot_eLists <- function(master_list, merged.path, save.pdf.as) {
   graphics.off()
