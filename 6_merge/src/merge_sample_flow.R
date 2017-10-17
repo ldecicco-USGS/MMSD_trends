@@ -104,7 +104,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                          paLong = 12,
                          stringsAsFactors = FALSE)
       
-      Sample <- filter(Sample, Date %in% Daily$Date) %>%
+      Daily_mod <- filter(Daily, !is.na(Q))
+      
+      Sample <- filter(Sample, Date %in% Daily_mod$Date) %>%
         arrange(Date)
       
       max.diff <- which.max(diff(Sample$Date))
@@ -128,8 +130,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
       }
       
       # modify Daily to match the start and end dates of Sample
-      Daily_mod <- filter(Daily, !is.na(Q)) %>%
-        filter(Date >= min(Sample$Date) & Date <= max(Sample$Date))
+      Daily_mod <- filter(Daily_mod, Date >= min(Sample$Date) & Date <= max(Sample$Date))
       
       # find gaps in the flow data
       n.flow.gaps <- length(which(diff(Daily_mod$Date) >1))
@@ -180,6 +181,7 @@ plot_eLists <- function(master_list, merged.path, save.pdf.as) {
   pdf(file = save.pdf.as)
 
   for(id in master_list$id[master_list$complete]){
+    print(id)
     eList <- readRDS(file.path(merged.path,paste0(id,".rds")))
     plot(eList)
   }
