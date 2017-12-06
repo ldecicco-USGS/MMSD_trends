@@ -5,6 +5,7 @@ include:
 
 packages:
   - dataRetrieval
+  - scipiper
   
 sources:
   - 4_discharge/src/get_flow.R
@@ -12,7 +13,10 @@ sources:
 targets:
   4_discharge:
     depends: 
-      - flow
+      - 4_discharge/out/raw_flow.rds.ind
   
-  flow:
-    command: get_flow(summary_flow) 
+  4_discharge/out:
+    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
+
+  4_discharge/out/raw_flow.rds.ind:
+    command: get_flow(summary_flow, target_name) 

@@ -1,11 +1,11 @@
 target_default: all
 
 packages:
-  - remake
+  - scipiper
 
 include:
-  - 7_model.yml
+  - 4_discharge.yml
 
 targets:
   all:
-    depends: 7_model/doc/model_check.pdf
+    depends: 4_discharge

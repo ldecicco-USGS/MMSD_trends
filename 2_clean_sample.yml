@@ -18,12 +18,11 @@ sources:
 targets:
   2_clean_sample:
     depends: 
-      - clean_sample_data
       - sample_data
   
-  clean_sample_data: 
+  clean_sample: 
     command: clean_sample_data(raw_sample)
     
   sample_data:
-    command: censored_data(clean_sample_data)
+    command: censored_data(clean_sample)
     
