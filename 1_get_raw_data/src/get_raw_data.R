@@ -1,8 +1,10 @@
 library(readxl)
 
-get_sample <- function(file){
+get_sample <- function(ind_file){
   
-  
+  gd_get(ind_file, type='xlsx')
+
+  file <- as_data_file(ind_file)
   sheet.names <- excel_sheets(file)
 
   data.full <- data.frame()
@@ -18,8 +20,11 @@ get_sample <- function(file){
   
 }
 
-get_sites <- function(file){
+get_sites <- function(ind_file){
 
+  gd_get(ind_file, type='xlsx')
+  file <- as_data_file(ind_file)
+  
   site.info <- read_excel(file, sheet = "SUMMARY_wRanks")
   
   return(site.info)
