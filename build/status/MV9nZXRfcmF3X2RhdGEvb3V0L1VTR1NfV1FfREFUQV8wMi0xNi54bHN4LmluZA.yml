@@ -1,0 +1,10 @@
+version: 0.3.0
+name: 1_get_raw_data/out/USGS_WQ_DATA_02-16.xlsx.ind
+type: file
+hash: bdb0e927e13c6868683e3caf55c7e84d
+time: 2017-12-05 23:36:40 UTC
+depends: {}
+fixed: 567b4894404e6bbfc8b629863e994fda
+code:
+  functions: {}
+

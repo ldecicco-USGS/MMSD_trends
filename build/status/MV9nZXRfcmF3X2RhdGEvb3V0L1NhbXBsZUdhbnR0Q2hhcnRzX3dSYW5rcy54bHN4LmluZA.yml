@@ -1,0 +1,10 @@
+version: 0.3.0
+name: 1_get_raw_data/out/SampleGanttCharts_wRanks.xlsx.ind
+type: file
+hash: 1b760112f59418dce1675055d4d6b8b6
+time: 2017-12-05 23:36:45 UTC
+depends: {}
+fixed: cf7fbc38f30051b2b4f64a9a9f7aa3ef
+code:
+  functions: {}
+
