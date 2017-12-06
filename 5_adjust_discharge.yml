@@ -15,4 +15,5 @@ targets:
       - adjusted_discharge
 
   adjusted_discharge: 
-    command: adjust_discharge_data(flow, summary_sites)
+    command: adjust_discharge_data("4_discharge/out/raw_flow.rds.ind", summary_sites)
+    

@@ -4,8 +4,8 @@ packages:
   - scipiper
 
 include:
-  - 4_discharge.yml
+  - 5_adjust_discharge.yml
 
 targets:
   all:
-    depends: 4_discharge
+    depends: 5_adjust_discharge
