@@ -1,0 +1,81 @@
+target_default: all
+
+packages:
+  - dplyr
+  - readxl
+  - scipiper
+  - tidyr
+  - stringr
+  - data.table
+  - yaml
+  - dataRetrieval
+  - EGRET
+  - lubridate
+
+sources:
+  - 1_get_data_ready/src/get_raw_data.R
+  - 1_get_data_ready/src/clean_sample_data.R
+  - 1_get_data_ready/src/clean_censored_data.R
+  - 1_get_data_ready/src/summarize_sites.R
+  - 1_get_data_ready/src/summarize_flow.R
+  - 1_get_data_ready/src/get_flow.R
+  - 1_get_data_ready/src/adjust_discharge_data.R
+  - 1_get_data_ready/src/merge_sample_flow.R
+
+file_extensions:
+  - ind
+
+targets:
+  all:
+    depends: 
+    - lib/cfg/gd_config.yml
+    - 1_get_data_ready/doc/data_checks.pdf.ind
+
+  lib/cfg/gd_config.yml:
+    command: gd_config(config_file=target_name, folder=I("1DGJJ1_tc1_92v0uOwL1bqFfPPyqk-nyZ"))
+  
+  1_get_data_ready/out:
+    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
+
+  1_get_data_ready/doc:
+    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
+
+  1_get_data_ready/out/USGS_WQ_DATA_02-16.xlsx.ind:
+    command: gd_confirm_posted(ind_file = target_name)    
+
+  1_get_data_ready/out/SampleGanttCharts_wRanks.xlsx.ind:
+    command: gd_confirm_posted(ind_file = target_name)
+    
+  raw_sample:
+    command: get_sample("1_get_data_ready/out/USGS_WQ_DATA_02-16.xlsx.ind")
+    
+  raw_site:
+    command: get_sites("1_get_data_ready/out/SampleGanttCharts_wRanks.xlsx.ind")
+
+  clean_sample: 
+    command: clean_sample_data(raw_sample)
+    
+  sample_data:
+    command: censored_data(clean_sample)
+    
+  summary_sites: 
+    command: summarize_sites(sample_data, raw_site) 
+    
+  summary_flow:
+    command: summarize_flow(summary_sites)
+    
+  raw_flow:
+    command: get_flow(summary_flow)
+
+  adjusted_discharge: 
+    command: adjust_discharge_data(raw_flow, summary_sites)
+  
+  merged_flow: 
+    command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge, I(save.eLists.in='1_get_data_ready/out'))
+  
+  1_get_data_ready/doc/data_checks.pdf:
+    command: plot_eLists(merged_flow, '1_get_data_ready/out', target_name)
+
+  1_get_data_ready/doc/data_checks.pdf.ind:
+    command: gd_put(target_name, '1_get_data_ready/doc/data_checks.pdf')
+    

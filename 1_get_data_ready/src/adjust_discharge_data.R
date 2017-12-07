@@ -1,10 +1,6 @@
 library(dplyr)
 
-adjust_discharge_data <- function(flow_ind, site.dat) {
-  
-  gd_get(flow_ind, type=".rds")
-  
-  flow.dat <- readRDS(as_data_file(flow_ind))
+adjust_discharge_data <- function(flow.dat, site.dat) {
   
   site.dat$rules <- site.dat$adjustment
   site.dat$rules[grep('scaling', site.dat$rules, ignore.case = TRUE)] <- 'scale'

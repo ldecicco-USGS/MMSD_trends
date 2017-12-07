@@ -33,7 +33,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
   for(i in site.summary$SITE){
     
     sample.data <- filter(all.samples, SITE == i)
-    #flow_site <- site.summary$siteID[which(site.summary$SITE == i)]
+    
     flow <- all.flow %>%
       filter(sample_site == i) %>%
       select(-sample_site)
