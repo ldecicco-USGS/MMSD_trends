@@ -4,8 +4,6 @@ library(lubridate)
 
 merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.in){
 
-  #min.samples <- 50
-  
   dir.create(save.eLists.in, showWarnings = FALSE, recursive = TRUE)
   
   params <- data.frame(name = c("BOD5 (mg/L)","FC (CFU/100mL)","FC (MPN/100mL)","FC_combined","NH3 (mg/L)","TP (mg/L)","Total Suspended Solids (mg/L)"),
@@ -13,7 +11,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                        param.units = c("mg/L","CFU/100mL", "MPN/100mL", "CFU-MPN/100mL","mg/L","mg/L","mg/L"),
                        stringsAsFactors = FALSE)
 
-  
+
   master_list <- data.frame(id = character(),
                             complete = logical(),
                             missing_all_sample = logical(),
@@ -176,6 +174,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
 
 plot_eLists <- function(master_list, merged.path, save.pdf.as) {
   graphics.off()
+
   pdf(file = save.pdf.as)
 
   for(id in master_list$id[master_list$complete]){

@@ -11,6 +11,7 @@ packages:
   - dataRetrieval
   - EGRET
   - lubridate
+  - knitr
 
 sources:
   - 1_get_data_ready/src/get_raw_data.R
@@ -21,6 +22,7 @@ sources:
   - 1_get_data_ready/src/get_flow.R
   - 1_get_data_ready/src/adjust_discharge_data.R
   - 1_get_data_ready/src/merge_sample_flow.R
+  - 1_get_data_ready/src/render.R
 
 file_extensions:
   - ind
@@ -30,6 +32,7 @@ targets:
     depends: 
     - lib/cfg/gd_config.yml
     - 1_get_data_ready/doc/data_checks.pdf.ind
+    - 1_get_data_ready/doc/diagram.html.ind
 
   lib/cfg/gd_config.yml:
     command: gd_config(config_file=target_name, folder=I("1DGJJ1_tc1_92v0uOwL1bqFfPPyqk-nyZ"))
@@ -71,7 +74,7 @@ targets:
     command: adjust_discharge_data(raw_flow, summary_sites)
   
   merged_flow: 
-    command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge, I(save.eLists.in='1_get_data_ready/out'))
+    command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge, I('1_get_data_ready/out'))
   
   1_get_data_ready/doc/data_checks.pdf:
     command: plot_eLists(merged_flow, '1_get_data_ready/out', target_name)
@@ -79,3 +82,11 @@ targets:
   1_get_data_ready/doc/data_checks.pdf.ind:
     command: gd_put(target_name, '1_get_data_ready/doc/data_checks.pdf')
     
+  1_get_data_ready/doc/diagram.html:
+    command: render_html(target_name, I("diagram.Rmd"))
+    cleanup_level: purge
+
+  1_get_data_ready/doc/diagram.html.ind:
+    command: gd_put(target_name, '1_get_data_ready/doc/diagram.html')
+ 
+ 

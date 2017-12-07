@@ -1,0 +1,19 @@
+---
+title: "Data Prep"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.height = 7,
+                      fig.width = 12)
+```
+
+```{r, echo=FALSE}
+
+remake::diagram(remake_file = "get_data_ready.yml")
+
+```
