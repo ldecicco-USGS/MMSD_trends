@@ -8,4 +8,8 @@ include:
 
 targets:
   all:
-    depends: 1_get_data_ready/doc/diagram.html.ind
+    depends: 
+      - lib/cfg/gd_config.yml
+      - 1_get_data_ready/doc/data_checks.pdf.ind
+      - 1_get_data_ready/doc/diagram.html.ind
+      - 1_get_data_ready/out/merged_data.rds.ind

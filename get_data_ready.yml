@@ -33,6 +33,7 @@ targets:
     - lib/cfg/gd_config.yml
     - 1_get_data_ready/doc/data_checks.pdf.ind
     - 1_get_data_ready/doc/diagram.html.ind
+    - 1_get_data_ready/out/merged_data.rds.ind
 
   lib/cfg/gd_config.yml:
     command: gd_config(config_file=target_name, folder=I("1DGJJ1_tc1_92v0uOwL1bqFfPPyqk-nyZ"))
@@ -88,5 +89,10 @@ targets:
 
   1_get_data_ready/doc/diagram.html.ind:
     command: gd_put(target_name, '1_get_data_ready/doc/diagram.html')
- 
+  
+  1_get_data_ready/out/merged_data.rds:
+    command: merge_elists(merged_flow, '1_get_data_ready/out', target_name)
+
+  1_get_data_ready/out/merged_data.rds.ind:
+    command: gd_put(target_name, '1_get_data_ready/out/merged_data.rds')
  
