@@ -31,9 +31,11 @@ targets:
   all:
     depends: 
     - lib/cfg/gd_config.yml
+    - 1_get_data_ready/out/merged_flow.rds
     - 1_get_data_ready/doc/data_checks.pdf.ind
-    - 1_get_data_ready/doc/diagram.html.ind
+    - 1_get_data_ready/out/merged_data.rds
     - 1_get_data_ready/out/merged_data.rds.ind
+    - 1_get_data_ready/doc/diagram.html.ind
 
   lib/cfg/gd_config.yml:
     command: gd_config(config_file=target_name, folder=I("1DGJJ1_tc1_92v0uOwL1bqFfPPyqk-nyZ"))
@@ -74,25 +76,24 @@ targets:
   adjusted_discharge: 
     command: adjust_discharge_data(raw_flow, summary_sites)
   
-  merged_flow: 
-    command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge, I('1_get_data_ready/out'))
-  
+  1_get_data_ready/out/merged_flow.rds: 
+    command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge, '1_get_data_ready/out', target_name)
+ 
   1_get_data_ready/doc/data_checks.pdf:
-    command: plot_eLists(merged_flow, '1_get_data_ready/out', target_name)
-
+    command: plot_eLists('1_get_data_ready/out/merged_flow.rds', '1_get_data_ready/out', target_name)
+  
   1_get_data_ready/doc/data_checks.pdf.ind:
     command: gd_put(target_name, '1_get_data_ready/doc/data_checks.pdf')
-    
+  
   1_get_data_ready/doc/diagram.html:
     command: render_html(target_name, I("diagram.Rmd"))
     cleanup_level: purge
-
+  
   1_get_data_ready/doc/diagram.html.ind:
     command: gd_put(target_name, '1_get_data_ready/doc/diagram.html')
   
   1_get_data_ready/out/merged_data.rds:
-    command: merge_elists(merged_flow, '1_get_data_ready/out', target_name)
-
+    command: merge_elists('1_get_data_ready/out/merged_flow.rds', '1_get_data_ready/out', target_name)
+  
   1_get_data_ready/out/merged_data.rds.ind:
     command: gd_put(target_name, '1_get_data_ready/out/merged_data.rds')
- 

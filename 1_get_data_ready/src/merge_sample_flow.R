@@ -2,7 +2,7 @@ library(EGRET)
 library(dplyr)
 library(lubridate)
 
-merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.in){
+merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.in, file_out){
 
   dir.create(save.eLists.in, showWarnings = FALSE, recursive = TRUE)
   
@@ -167,14 +167,16 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
     
   }
 
-  return(master_list)
+  saveRDS(master_list, file=file_out)
 
 }
 
 
-plot_eLists <- function(master_list, merged_path, save.pdf.as) {
+plot_eLists <- function(master_list_file, merged_path, save.pdf.as) {
   graphics.off()
-
+  
+  master_list <- readRDS(master_list_file)
+  
   pdf(file = save.pdf.as)
 
   for(id in master_list$id[master_list$complete]){
@@ -185,7 +187,9 @@ plot_eLists <- function(master_list, merged_path, save.pdf.as) {
   
 }
 
-merge_elists <- function(master_list, merged_path, file_out){
+merge_elists <- function(master_list_file, merged_path, file_out){
+  
+  master_list <- readRDS(master_list_file)
   
   big_elist <- list()
   for(id in master_list$id[master_list$complete]){
