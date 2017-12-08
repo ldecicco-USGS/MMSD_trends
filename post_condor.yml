@@ -1,0 +1,37 @@
+target_default: all
+
+packages:
+  - dplyr
+  - EGRET
+  - scipiper
+
+sources:
+  - 1_get_condor_data/src/get_data.R
+
+file_extensions:
+  - ind
+
+targets:
+  all:
+    depends: 
+    - lib/cfg/gd_config.yml
+    - 1_get_condor_data/out/modeled.rds.ind
+    
+  lib/cfg/gd_config.yml:
+    command: gd_config(config_file=target_name, folder=I("1DGJJ1_tc1_92v0uOwL1bqFfPPyqk-nyZ"))
+  
+  1_get_condor_data/out:
+    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
+
+  1_get_condor_data/raw_condor:
+    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
+
+  1_get_data_ready/out:
+    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
+  
+  master_list:
+    command: readRDS(file = I(gd_get('1_get_data_ready/out/merged_flow.rds.ind')))
+
+  1_get_condor_data/out/modeled.rds.ind:
+    command: get_data(master_list, target_name)
+    
