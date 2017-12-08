@@ -31,7 +31,7 @@ targets:
   all:
     depends: 
     - lib/cfg/gd_config.yml
-    - 1_get_data_ready/out/merged_flow.rds
+    - 1_get_data_ready/out/merged_flow.rds.ind
     - 1_get_data_ready/doc/data_checks.pdf.ind
     - 1_get_data_ready/out/merged_data.rds
     - 1_get_data_ready/out/merged_data.rds.ind
@@ -78,6 +78,9 @@ targets:
   
   1_get_data_ready/out/merged_flow.rds: 
     command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge, '1_get_data_ready/out', target_name)
+ 
+  1_get_data_ready/out/merged_flow.rds.ind:
+    command: gd_put(target_name, '1_get_data_ready/out/merged_flow.rds')
  
   1_get_data_ready/doc/data_checks.pdf:
     command: plot_eLists('1_get_data_ready/out/merged_flow.rds', '1_get_data_ready/out', target_name)
