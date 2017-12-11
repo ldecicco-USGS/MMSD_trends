@@ -14,7 +14,7 @@ plot_data <- function(master_list, data_file_ind, file_out){
   gd_put(file_out, local_source = file_out)
 }
 
-plot_conc_flux <- function(master_list, data_file_ind, remake_file, file_out){
+plot_conc_flux <- function(master_list, data_file_ind, file_out){
   eList_lists <- readRDS(as_data_file(data_file_ind))
   
   pdf(as_data_file(file_out))
