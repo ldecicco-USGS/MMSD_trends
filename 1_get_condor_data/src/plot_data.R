@@ -7,15 +7,17 @@ get_master_list <- function(ind_file){
 plot_data <- function(master_list, data_file, file_out){
   eList_lists <- readRDS(data_file)
   
-  pdf(file_out)
+  pdf(as_data_file(file_out))
   sapply(eList_lists, plot)
   dev.off()
+  
+  gd_put(file_out, local_source = file_out)
 }
 
 plot_conc_flux <- function(master_list, data_file, file_out){
   eList_lists <- readRDS(data_file)
   
-  pdf(file_out)
+  pdf(as_data_file(file_out))
   par(mfcol = c(1,2),oma = c(0, 0, 2, 0))
   sapply(eList_lists, function(x){
     plotConcHist(x, printTitle = FALSE)
@@ -23,12 +25,14 @@ plot_conc_flux <- function(master_list, data_file, file_out){
     mtext(paste(x$INFO$shortName, x$INFO$paramShortName), outer = TRUE, cex = 1.5)
   })
   dev.off()
+  gd_put(file_out, local_source = file_out)
 }
 
 plot_bias <- function(master_list, data_file, file_out){
   eList_lists <- readRDS(data_file)
   
-  pdf(file_out)
+  pdf(as_data_file(file_out))
   sapply(eList_lists, fluxBiasMulti)
   dev.off()
+  gd_put(file_out, local_source = file_out)
 }

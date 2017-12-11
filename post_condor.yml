@@ -54,11 +54,20 @@ targets:
   1_get_condor_data/doc:
     command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
   
-  1_get_condor_data/doc/plot.pdf:
+  1_get_condor_data/doc/plot.pdf.ind:
     command: plot_data(master_list,"1_get_condor_data/out/modeled.rds", target_name)
     
-  1_get_condor_data/doc/plotConcFluxHist.pdf:
+  1_get_condor_data/doc/plot.pdf:
+    command: gd_get("1_get_condor_data/doc/plot.pdf.ind")
+    
+  1_get_condor_data/doc/plotConcFluxHist.pdf.ind:
     command: plot_conc_flux(master_list,"1_get_condor_data/out/modeled.rds", target_name)
     
-  1_get_condor_data/doc/fluxBiasMulti.pdf:
+  1_get_condor_data/doc/plotConcFluxHist.pdf:
+    command: gd_get("1_get_condor_data/doc/plotConcFluxHist.pdf.ind")
+    
+  1_get_condor_data/doc/fluxBiasMulti.pdf.ind:
     command: plot_bias(master_list,"1_get_condor_data/out/modeled.rds", target_name)
+  
+  1_get_condor_data/doc/fluxBiasMulti.pdf:
+    command: gd_get("1_get_condor_data/doc/fluxBiasMulti.pdf.ind")
