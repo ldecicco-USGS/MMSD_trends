@@ -1,5 +1,6 @@
-get_data <- function(master_list, ind_file){
+get_data <- function(master_list_path, ind_file){
 
+  master_list <- readRDS(master_list_path)
   tempFolder  <- tempdir()
   big_eList <- list()
   
@@ -11,16 +12,19 @@ get_data <- function(master_list, ind_file){
     data_file <- gd_get(ind_file = file_name)
     
     zipped_files <- unzip(data_file, exdir = tempFolder)
-    eList <- readRDS(file.path(tempFolder,"eList.rds"))
-    id <- paste0(eList$INFO$shortName,"_",eList$INFO$paramShortName)
-    id_index <- which(master_list$id == id)
-    master_list$model_complete[id_index] <- TRUE
-    
-    big_eList[[id]] <- eList
+
+    if(any(grepl(pattern = "eList.rds",x = zipped_files))){
+      eList <- readRDS(file.path(tempFolder,"eList.rds"))
+      id <- paste0(eList$INFO$shortName,"_",eList$INFO$paramShortName)
+      id_index <- which(master_list$id == id)
+      master_list$model_complete[id_index] <- TRUE
+      saveRDS(master_list, file = master_list_path)
+      big_eList[[id]] <- eList
+      saveRDS(big_eList, file = as_data_file(ind_file))
+      file.remove(zipped_files)
+    }
     index <- index + 1
-    file.remove(zipped_files)
   }
-  
-  saveRDS(big_eList, file = as_data_file(ind_file))
+
   gd_put(ind_file, as_data_file(ind_file))
 }
