@@ -6,6 +6,7 @@ cached_data
 */doc/*
 !*/doc/README.md
 */log/*
+*/tmp/*
 !*/log/README.md
 !*/out/README.md
 .remake

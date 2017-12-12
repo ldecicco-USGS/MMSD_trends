@@ -1,0 +1,11 @@
+version: 0.3.0
+name: 1_get_data_ready/out/merged_data.rds.ind
+type: file
+hash: 4bf572ffb0e1f5937483712fce383333
+time: 2017-12-12 19:51:36 UTC
+depends:
+  1_get_data_ready/out/merged_data.rds: ce5e1f7c8a65de53432653e7e7263629
+fixed: 20d6decfe856c5254aa049e522dc26be
+code:
+  functions: {}
+

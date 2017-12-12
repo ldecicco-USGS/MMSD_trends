@@ -1,0 +1,11 @@
+version: 0.3.0
+name: 1_get_data_ready/doc/data_checks.pdf.ind
+type: file
+hash: cbeaf6bec371bd0bcf9f85036327819f
+time: 2017-12-12 19:50:07 UTC
+depends:
+  1_get_data_ready/doc/data_checks.pdf: 22c099454868e92df584a9e6d5f0cb84
+fixed: 6a8fc5d0dd73f4984c4d45095d4a747f
+code:
+  functions: {}
+

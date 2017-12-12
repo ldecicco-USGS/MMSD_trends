@@ -1,0 +1,11 @@
+version: 0.3.0
+name: 1_get_data_ready/doc/diagram.html.ind
+type: file
+hash: 3a21be89af07135782c1a823b5ad6481
+time: 2017-12-12 19:50:31 UTC
+depends:
+  1_get_data_ready/doc/diagram.html: fceddf53621bf9bb179de151f1f2d854
+fixed: 42c682ce5a72dfe9d04c1127ef16c0bc
+code:
+  functions: {}
+
