@@ -33,20 +33,23 @@ targets:
   1_get_data_ready/out:
     command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
 
+  1_get_data_ready/out/merged_flow.rds:
+    command: gd_get("1_get_data_ready/out/merged_flow.rds.ind")
+  
   master_list_orig:
-    command: get_master_list("1_get_data_ready/out/merged_flow.rds.ind")
-
-  1_get_condor_data/out/master_list.rds.ind:
-    command: save_master_list(master_list_orig, target_name)
-
+    command: readRDS("1_get_data_ready/out/merged_flow.rds")
+    
   1_get_condor_data/out/modeled.rds.ind:
     command: get_data(master_list_orig, "1_get_condor_data/out/master_list.rds.ind", target_name)
     
   1_get_condor_data/out/modeled.rds:
     command: gd_get('1_get_condor_data/out/modeled.rds.ind')
 
+  1_get_condor_data/out/master_list.rds.ind:
+    command: gd_get("1_get_condor_data/out/master_list.rds.ind")
+    
   master_list:
-    command: get_master_list("1_get_condor_data/out/master_list.rds.ind")
+    command: readRDS("1_get_condor_data/out/master_list.rds")
 
   1_get_condor_data/doc:
     command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))

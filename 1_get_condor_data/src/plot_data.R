@@ -1,13 +1,3 @@
-get_master_list <- function(ind_file){
-  master_list <- readRDS(as_data_file(ind_file))
-  return(master_list)
-}
-
-save_master_list <- function(master_list, ind_file){
-  saveRDS(master_list, file = as_data_file(ind_file))
-  gd_put(remote_ind = ind_file, local_source = ind_file)
-  return(master_list)
-}
 
 plot_data <- function(master_list, data_file_ind, file_out){
   eList_lists <- readRDS(as_data_file(data_file_ind))
