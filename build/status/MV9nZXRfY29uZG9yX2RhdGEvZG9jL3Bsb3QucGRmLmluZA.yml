@@ -1,0 +1,13 @@
+version: 0.3.0
+name: 1_get_condor_data/doc/plot.pdf.ind
+type: file
+hash: cb21fc9a359a453a4ba41b87545238ec
+time: 2017-12-12 18:13:08 UTC
+depends:
+  master_list: 166a340e0bcbcc734e9c537869cd8c79
+  1_get_condor_data/out/modeled.rds.ind: bd0fe3d2bdfc77d44e93966f0cf6c811
+fixed: 04fca8832e02323811261dc2cb6be497
+code:
+  functions:
+    plot_data: 1ca442d8113791560b59bf448250bf2f
+
