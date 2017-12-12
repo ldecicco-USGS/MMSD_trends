@@ -1,0 +1,12 @@
+version: 0.3.0
+name: 1_get_condor_data/out/master_list.rds.ind
+type: file
+hash: 4ae075cf9f033b14cc57e31d92ef3434
+time: 2017-12-12 17:44:58 UTC
+depends:
+  master_list_orig: 825ed3e7f1684d93571ca64ceda1933b
+fixed: df5a36493618bc0806e8626c27b87eb8
+code:
+  functions:
+    save_master_list: 33a460c73eb4cc4fa2ffa7d01b70ff47
+
