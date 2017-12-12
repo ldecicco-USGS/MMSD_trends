@@ -36,17 +36,17 @@ targets:
   1_get_data_ready/out/merged_flow.rds.ind:
     command: gd_get(target_name)
     
-  1_get_condor_data/out/master_list.rds:
-    command: saveRDS(object= I(readRDS(as_data_file("1_get_data_ready/out/merged_flow.rds.ind"))), file = I("1_get_condor_data/out/master_list.rds"))
+  master_list_orig:
+    command: get_master_list("1_get_data_ready/out/merged_flow.rds.ind")
+
+  1_get_condor_data/out/master_list.rds.ind:
+    command: save_master_list(master_list_orig, target_name)
 
   1_get_condor_data/out/modeled.rds.ind:
-    command: get_data("1_get_condor_data/out/master_list.rds", target_name)
+    command: get_data(master_list_orig, "1_get_condor_data/out/master_list.rds.ind", target_name)
     
   1_get_condor_data/out/modeled.rds:
     command: gd_get('1_get_condor_data/out/modeled.rds.ind')
-    
-  1_get_condor_data/out/master_list.rds.ind:
-    command: gd_put(remote_ind=target_name, local_source="1_get_condor_data/out/master_list.rds")
 
   master_list:
     command: get_master_list("1_get_condor_data/out/master_list.rds.ind")

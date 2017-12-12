@@ -7,7 +7,6 @@ cached_data
 !*/doc/README.md
 */log/*
 !*/log/README.md
-*/out/*
 !*/out/README.md
 .remake
 .httr-oauth
