@@ -24,6 +24,6 @@ get_data <- function(master_list, master_list_ind, ind_file){
     }
     index <- index + 1
   }
-
+  gd_put(master_list_ind, as_data_file(master_list_ind))
   gd_put(ind_file, as_data_file(ind_file))
 }
