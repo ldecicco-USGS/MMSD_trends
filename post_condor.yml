@@ -32,10 +32,7 @@ targets:
 
   1_get_data_ready/out:
     command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
-  
-  1_get_data_ready/out/merged_flow.rds.ind:
-    command: gd_get(target_name)
-    
+
   master_list_orig:
     command: get_master_list("1_get_data_ready/out/merged_flow.rds.ind")
 
