@@ -27,18 +27,42 @@ targets:
   1_get_condor_data/out:
     command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
 
-  1_get_condor_data/raw_condor:
-    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
-
-  1_get_data_ready/out:
-    command: dir.create(target_name, recursive=I(TRUE), showWarnings=I(FALSE))
-
   1_get_data_ready/out/merged_flow.rds:
     command: gd_get("1_get_data_ready/out/merged_flow.rds.ind")
   
   master_list_orig:
     command: readRDS("1_get_data_ready/out/merged_flow.rds")
     
+ # prepare a remake-style plan for running each state as a separate
+  # remake target in a separate remake file (tasks_1_wqp.yml)
+  post_process_plan:
+    command: plan_wqp_pull(master_list_orig)
+  tasks_1_post_process.yml:
+    command: create_post_process_makefile(makefile=target_name, task_plan=post_process_plan)
+    
+  # run the data pulls
+  1_get_condor_data/log/tasks_1_wqp.ind:
+    command: loop_tasks(
+      task_plan=post_process_plan, task_makefile='tasks_1_post_process.yml',
+      task_names=I(NULL),
+      num_tries=I(30), sleep_on_error=I(20))
+    
+    # this target is the mandatory complement to 1_wqdata/tmp/wqp_all.feather, which will
+  # only ever be produced on the computer[s] that need to [re]generate this data file.
+  # allows us to split up the computing and posting phases of wqp_all.feather
+  1_get_condor_data/tmp/post_process.rds.ind:
+    command: pull_all_wqp_data(ind_file=target_name, makefile='tasks_1_post_process.yml', task_plan=post_process_plan)
+  
+  # this target is a promise that any other computer could simply pull the data file from gd
+  1_get_condor_data/out/post_process.rds.ind:
+    command: gd_put(target_name, '1_get_condor_data/tmp/post_process.rds.ind')
+    
+  # here's how any computer would pull the data file from gd
+  1_get_condor_data/out/post_process.rds:
+    command: gd_get('1_get_condor_data/out/post_process.rds.ind')
+  
+  
+  
   1_get_condor_data/out/modeled.rds.ind:
     command: get_data(master_list_orig, "1_get_condor_data/out/master_list.rds.ind", target_name)
     
