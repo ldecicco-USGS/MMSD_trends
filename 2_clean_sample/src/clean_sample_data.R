@@ -55,3 +55,36 @@ clean_sample_data <- function(raw_sample){
   
   return(data.wide)
 }
+
+clean_sample_data_modern <- function(raw_sample) {
+  
+  # columns have repeating names - same names for different parameters
+  # no number = ammonia, 1 = TP, 2 = fecal coliform (MPN/100mL), 3 = fecal coliform (CFU/100 mL), 
+  # 4 = TSS, 5 = 5 day BOD, 6 = 20 day BOD
+  
+  filtered_dat <- select(raw_sample, -SAMPLE, -contains('Method'), -contains('__6')) %>%
+    filter(DATE >= as.Date('2016-12-07'))
+  
+  results_dat <- filtered_dat %>%
+    select(SITE, DATE, contains('Result')) %>%
+    rename('NH3 (mg/L)' = Result,
+           'TP (mg/L)' = Result__1,
+           'FC (MPN/100mL)' = Result__2,
+           "FC (CFU/100mL)" = Result__3,
+           "Total Suspended Solids (mg/L)" = Result__4,
+           'BOD5 (mg/L)' = Result__5) %>%
+    gather(key = variable, value = raw_value, -SITE, -DATE) %>%
+    filter(!is.na(raw_value)) %>%
+    rowwise() %>%
+    mutate(ramk = case_when(
+      any(grep('<', raw_value)) ~ "<",
+      any(grep('>', raw_value)) ~ ">")) %>%
+    ungroup() %>%
+    mutate(value = gsub('<\\s|>\\s', '', raw_value)) %>%
+    mutate(value = as.numeric(gsub('\\s\\D.+', '', value)))
+    
+    
+    rename()
+  rmk_dat <- filtered_dat %>%
+    select(contains(''))
+}

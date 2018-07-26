@@ -18,6 +18,11 @@ get_sample <- function(file){
   
 }
 
+get_sample_modern <- function(file) {
+  dat <- read_excel(file, skip = 1)
+  return(dat)
+}
+
 get_sites <- function(file){
 
   site.info <- read_excel(file, sheet = "SUMMARY_wRanks")
