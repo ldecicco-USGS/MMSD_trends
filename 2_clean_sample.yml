@@ -18,7 +18,7 @@ sources:
 targets:
   2_clean_sample:
     depends: 
-      - clean_sample_data_to2016
+      - sample_data
   
   clean_sample_data_to2016: 
     command: clean_sample_data(raw_sample = raw_sample_to2016)
@@ -27,5 +27,5 @@ targets:
     command: clean_sample_data_modern(raw_sample = raw_sample_2017)
     
   sample_data:
-    command: censored_data(clean_sample_data_to2016)
+    command: censored_data(clean_sample_data_to2016, clean_sample_data_2017)
     
