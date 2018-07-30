@@ -62,17 +62,11 @@ clean_sample_data_modern <- function(raw_sample) {
   # no number = ammonia, 1 = TP, 2 = fecal coliform (MPN/100mL), 3 = fecal coliform (CFU/100 mL), 
   # 4 = TSS, 5 = 5 day BOD, 6 = 20 day BOD
   
-  filtered_dat <- select(raw_sample, -SAMPLE, -contains('Method'), -contains('__6')) %>%
+  filtered_dat <- select(raw_sample, -SAMPLE, -contains('Method'), -contains('BOD20')) %>%
     filter(DATE >= as.Date('2016-12-07'))
   
   results_dat <- filtered_dat %>%
-    select(SITE, DATE, contains('Result')) %>%
-    rename('NH3 (mg/L)' = Result,
-           'TP (mg/L)' = Result__1,
-           'FC (MPN/100mL)' = Result__2,
-           "FC (CFU/100mL)" = Result__3,
-           "Total Suspended Solids (mg/L)" = Result__4,
-           'BOD5 (mg/L)' = Result__5) %>%
+    select(SITE, DATE, contains('mg/L'), contains('100mL')) %>%
     gather(key = variable, value = raw_value, -SITE, -DATE) %>%
     filter(!is.na(raw_value)) %>%
     rowwise() %>%
@@ -101,13 +95,11 @@ clean_sample_data_modern <- function(raw_sample) {
   vals <- select(results_dat_mean, SITE, DATE, variable, value = value.mean) %>%
     spread(key = variable, value = value)
   
-  cleaned_dat <- left_join(vals, rmk)
-    
-  # would add the "combined" FC variables, but there were no FC measurements
-  # in this WY2017 dataset
-  
-  #mutate(FC_combined = ifelse(is.na(`FC (MPN/100mL)`), `FC (CFU/100mL)`, `FC (MPN/100mL)`),
-  #         rmk_FC_combined = ifelse(is.na(`rmk_FC (MPN/100mL)`), `rmk_FC (CFU/100mL)`, `rmk_FC (MPN/100mL)`))
+  # no ifelse statement for picking between FC measures because there were no MPN method
+  # measurements in WY 2017 - just pulled over CFU measures in FC_combined
+  cleaned_dat <- left_join(vals, rmk) %>%
+    mutate(FC_combined = `FC (CFU/100mL)`,
+           rmk_FC_combined = `rmk_FC (CFU/100mL)`)
     
   return(cleaned_dat)
 }
