@@ -27,7 +27,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                             n_before_gap = numeric(),
                             n_after_gap = numeric(),
                             n_flow_gaps = numeric(),
-                            prop_censored = numeric())
+                            prop_censored = numeric(), 
+                            start_date = as.Date(character()), 
+                            end_date = as.Date(character()))
   
   
   for(i in site.summary$SITE){
@@ -53,7 +55,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                           n_before_gap = NA,
                                           n_after_gap = NA,
                                           n_flow_gaps = NA,
-                                          prop_censored = NA))
+                                          prop_censored = NA, 
+                                          start_date = NA, 
+                                          end_date = NA))
       
       next
     }
@@ -89,7 +93,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                             n_before_gap = NA,
                                             n_after_gap = NA,
                                             n_flow_gaps = NA,
-                                            prop_censored = NA))
+                                            prop_censored = NA, 
+                                            start_date = NA,
+                                            end_date = NA))
         
         next
       }
@@ -104,7 +110,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                          paLong = 12,
                          stringsAsFactors = FALSE)
       
-      Sample <- filter(Sample, Date %in% Daily$Date) %>%
+      Daily_mod <- filter(Daily, !is.na(Q))
+      
+      Sample <- filter(Sample, Date %in% Daily_mod$Date) %>%
         arrange(Date)
       
       max.diff <- which.max(diff(Sample$Date))
@@ -128,7 +136,7 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
       }
       
       # modify Daily to match the start and end dates of Sample
-      Daily_mod <- filter(Daily, Date >= min(Sample$Date) & Date <= max(Sample$Date))
+      Daily_mod <- filter(Daily_mod, Date >= min(Sample$Date) & Date <= max(Sample$Date))
       
       # find gaps in the flow data
       n.flow.gaps <- length(which(diff(Daily_mod$Date) >1))
@@ -136,11 +144,15 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
       # if there are gaps in the flow data, remove data before gaps
       # then modify the sample record to match the flow record
       
-      if (n.flow.gaps > 1) {
-        row.drop <- which(diff(Daily$Date) >1)
-        Daily <- Daily[(row.drop+1):nrow(Daily), ]
-        Sample <- filter(Sample, Date >= min(Daily$Date) & Date <= max(Daily$Date))
+      if (n.flow.gaps > 0) {
+        row.drop <- which(diff(Daily_mod$Date) >1)
+        Daily_mod <- Daily_mod[(row.drop+1):nrow(Daily_mod), ]
+        Sample <- filter(Sample, Date >= min(Daily_mod$Date) & Date <= max(Daily_mod$Date))
       }
+      
+      # find start and end dates of the sample
+      start.date <- min(Sample$Date)
+      end.date <- max(Sample$Date)
       
       # now modify and check daily flow data to make sure flow data are continous to 
       # sample data 
@@ -164,7 +176,9 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
                                           n_before_gap = n.gap.before,
                                           n_after_gap = n.gap.after,
                                           n_flow_gaps = n.flow.gaps, 
-                                          prop_censored = 1-round(mean(eList$Sample$Uncen), 2)))
+                                          prop_censored = 1-round(mean(eList$Sample$Uncen), 2), 
+                                          start_date = start.date,
+                                          end_date = end.date))
     }
     
   }
@@ -173,6 +187,17 @@ merge_sample_flow <- function(all.samples, site.summary, all.flow, save.eLists.i
 
 }
 
+list_eLists <- function(master_list, merged.path) {
+  all.eLists <- list()
+  all.ids <- c()
+  for (id in master_list$id[master_list$complete & master_list$n_years_consec > 9]) {
+    path.eList <- file.path(merged.path, paste0(id, ".rds"))
+    all.eLists[[id]] <- readRDS(path.eList)
+    all.ids[id] <- id
+  }
+  saveRDS(all.eLists, file = file.path(merged.path, 'all_eLists.rds'))
+  saveRDS(all.ids, file = file.path(merged.path, 'all_ids.rds'))
+}
 
 plot_eLists <- function(master_list, merged.path, save.pdf.as) {
   graphics.off()

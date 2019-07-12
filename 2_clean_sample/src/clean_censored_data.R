@@ -6,7 +6,7 @@ library(dplyr)
 # end of the data through time, and looking for hard
 # cutoff lines that were likely censored values
 
-censored_data <- function(cleaned.dat) {
+censored_data <- function(cleaned.dat, cleaned.dat.modern) {
 
 dat.censored <- cleaned.dat %>%
   filter(DATE < as.POSIXct("2002-03-25")) %>%
@@ -62,11 +62,14 @@ dat.censored$`Total Suspended Solids (mg/L)`[which(dat.censored$DATE >= as.POSIX
 dat.censored$`rmk_Total Suspended Solids (mg/L)`[which(dat.censored$DATE < as.POSIXct("1993-01-01") & dat.censored$`Total Suspended Solids (mg/L)` <= 3)] = "<"
 dat.censored$`Total Suspended Solids (mg/L)`[which(dat.censored$DATE < as.POSIXct("1993-01-01") & dat.censored$`Total Suspended Solids (mg/L)` <= 3)] = 3
 
-# put everything back together
+# put everything back together, add WY2017 data
+dat_add <- cleaned.dat.modern %>%
+  mutate(year = year(DATE))
 
 dat.final <- cleaned.dat %>%
   filter(DATE >= as.POSIXct("2002-03-25")) %>%
-  bind_rows(dat.censored)
+  bind_rows(dat.censored) %>%
+  bind_rows(dat_add)
   
 return(dat.final)
 }

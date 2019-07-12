@@ -55,3 +55,51 @@ clean_sample_data <- function(raw_sample){
   
   return(data.wide)
 }
+
+clean_sample_data_modern <- function(raw_sample) {
+  
+  # columns have repeating names - same names for different parameters
+  # no number = ammonia, 1 = TP, 2 = fecal coliform (MPN/100mL), 3 = fecal coliform (CFU/100 mL), 
+  # 4 = TSS, 5 = 5 day BOD, 6 = 20 day BOD
+  
+  filtered_dat <- select(raw_sample, -SAMPLE, -contains('Method'), -contains('BOD20')) %>%
+    filter(DATE >= as.Date('2016-12-07'))
+  
+  results_dat <- filtered_dat %>%
+    select(SITE, DATE, contains('mg/L'), contains('100mL')) %>%
+    gather(key = variable, value = raw_value, -SITE, -DATE) %>%
+    filter(!is.na(raw_value)) %>%
+    rowwise() %>%
+    mutate(rmk = case_when(
+      any(grep('<', raw_value)) ~ "<",
+      any(grep('>', raw_value)) ~ ">")) %>%
+    ungroup() %>%
+    filter(!(raw_value %in% "M mg/L")) %>%
+    mutate(value = gsub('<\\s|>\\s', '', raw_value)) %>%
+    mutate(value = as.numeric(gsub('\\s\\D.+', '', value))) %>%
+    mutate(SITE =  gsub(pattern = "([A-Za-z]{2}-[0-9]{2})([A-Za-z]{1})", replacement = "\\1", SITE))
+  
+  symbols_before <- unique(gsub('(^\\D*\\s*)(\\d+[[:punct:]]*\\s*\\d*\\s.+$)', replacement = '\\1', results_dat$raw_value))
+  
+  # take the mean of surface, middle, bottom samples
+  # which have the same site/date combo
+  results_dat_mean <- group_by(results_dat, SITE, DATE, variable) %>%
+    summarize(value.mean = mean(value), rmk.mean = paste0(unique(rmk), collapse = '')) %>%
+    mutate(rmk.mean = na_if(rmk.mean, 'NA')) %>%
+    filter(!rmk.mean %in% '<>')
+  
+  rmk <- select(results_dat_mean, SITE, DATE, variable, rmk = rmk.mean) %>%
+    mutate(variable = paste0('rmk_', variable)) %>%
+    spread(key = variable, value = rmk)
+  
+  vals <- select(results_dat_mean, SITE, DATE, variable, value = value.mean) %>%
+    spread(key = variable, value = value)
+  
+  # no ifelse statement for picking between FC measures because there were no MPN method
+  # measurements in WY 2017 - just pulled over CFU measures in FC_combined
+  cleaned_dat <- left_join(vals, rmk) %>%
+    mutate(FC_combined = `FC (CFU/100mL)`,
+           rmk_FC_combined = `rmk_FC (CFU/100mL)`)
+    
+  return(cleaned_dat)
+}
