@@ -15,11 +15,11 @@ targets:
       - raw_site
   
   raw_sample_to2016:
-    command: get_sample(file = 'M:/QW Monitoring Team/MMSD/Phase V/QWTrends/Data/2_OriginalData/20170221_QWDataFromBeth_WY79-16QWData/USGS_WQ_DATA_02-16.xlsx')
+    command: get_sample(file = '1_get_raw_data/raw/USGS_WQ_DATA_02-16.xlsx')
     
   raw_sample_2017:
-    command: get_sample_modern(file = 'M:/QW Monitoring Team/MMSD/Phase V/QWTrends/Data/2_OriginalData/20180723_QWDataFromBeth_WY02-17QWData/USGS 2002-2017.xlsx')
+    command: get_sample_modern(file = '1_get_raw_data/raw/USGS 2002-2017.xlsx')
     
   raw_site:
-    command: get_sites(file = '//gs.doi.net/MiddletonWI-W/Projects/QW Monitoring Team/MMSD/Phase V/QWTrends/Data/1_DataInventories/SampleGanttCharts_wRanks.xlsx')
+    command: get_sites(file = '1_get_raw_data/raw/SampleGanttCharts_wRanks.xlsx')
   

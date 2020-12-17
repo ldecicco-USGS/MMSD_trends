@@ -20,13 +20,13 @@ targets:
       - 6_merge/doc/data_checks.pdf
   
   merged_flow: 
-    command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge, I(save.eLists.in='6_merge/out'))
+    command: merge_sample_flow(sample_data, summary_sites, adjusted_discharge)
     
-  6_merge/share/site_sample_flow_summary.csv:
+  6_merge/out/site_sample_flow_summary.csv:
     command: write.csv(merged_flow, target_name)
     
   merged_eLists:
-    command: list_eLists(merged_flow, '6_merge/out')
+    command: list_eLists(merged_flow)
   
   6_merge/doc/data_checks.pdf:
-    command: plot_eLists(merged_flow, '6_merge/out', target_name)
+    command: plot_eLists(merged_flow, target_name)
